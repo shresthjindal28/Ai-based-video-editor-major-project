@@ -1,0 +1,160 @@
+
+# ============================================================
+# AutoCut AI — Root .gitignore
+# ============================================================
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.prof
+*.pstats
+
+# Python packaging / builds
+*.egg-info/
+.eggs/
+build/
+dist/
+site/
+pip-wheel-metadata/
+
+# Keep uv.lock and package-lock.json tracked
+
+# Node.js / Next.js
+node_modules/
+.next/
+.nuxt/
+.turbo/
+.vercel/
+.out/
+out/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# Frontend tests and reports
+coverage/
+playwright-report/
+test-results/
+*.lcov
+
+# Uploaded / generated media
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.m4v
+*.wav
+*.mp3
+*.flac
+*.aac
+*.aiff
+*.srt
+*.vtt
+*.gif
+*.zip
+*.tar.gz
+
+# Editing pipeline artifacts
+uploads/
+raw_media/
+processed_media/
+proxies/
+thumbnails/
+previews/
+renders/
+exports/
+outputs/
+artifacts/
+cache/
+tmp/
+temp/
+workdir/
+
+# Downloaded AI model weights
+*.safetensors
+*.gguf
+*.ggml
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.bin
+*.h5
+*.hdf5
+*.tflite
+models--*/
+.huggingface/
+.hf_cache/
+ollama_models/
+
+# Local databases and runtime logs
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.log
+logs/
+celerybeat-schedule*
+*.pid
+*.pid.lock
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS and editors
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.swp
+*.swo
+*~
+
+# Docker local persistent data
+.postgres_data/
+.redis_data/
+.minio_data/
+docker-data/
