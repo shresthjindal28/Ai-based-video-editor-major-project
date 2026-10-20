@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import os
 import signal
 from fractions import Fraction
@@ -13,10 +14,20 @@ from app.core.exceptions import ProcessError
 from app.core.metrics import PROCESSES
 
 logger = logging.getLogger(__name__)
+_process_slots = asyncio.Semaphore(get_settings().max_media_processes)
 
 
 async def run_media_command(
     args: list[str], timeout: int | None = None, cancelled: asyncio.Event | None = None
+) -> tuple[int, bytes, bytes]:
+    async with _process_slots:
+        if cancelled and cancelled.is_set():
+            raise ProcessError("job_cancelled", "Media processing cancelled", 409)
+        return await _run_media_command(args, timeout, cancelled)
+
+
+async def _run_media_command(
+    args: list[str], timeout: int | None, cancelled: asyncio.Event | None
 ) -> tuple[int, bytes, bytes]:
     process = None
     try:
@@ -97,7 +108,8 @@ async def probe(path: Path) -> dict:
     allowed_formats = {"mov,mp4,m4a,3gp,3g2,mj2", "matroska,webm", "mp3", "wav", "aac", "flac"}
     if format_name not in allowed_formats:
         raise ProcessError("unsupported_media", "Unsupported media container", 415)
-    video = next((stream for stream in streams if stream.get("codec_type") == "video"), None)
+    video = next((stream for stream in streams if stream.get("codec_type") == "video"
+                  and not stream.get("disposition", {}).get("attached_pic")), None)
     audio = next((stream for stream in streams if stream.get("codec_type") == "audio"), None)
     if video is None and audio is None:
         raise ProcessError("unsupported_media", "Upload must contain video or audio", 415)
@@ -110,7 +122,7 @@ async def probe(path: Path) -> dict:
         raise ProcessError(
             "invalid_media_metadata", "Media stream metadata is malformed", 422
         ) from exc
-    if duration <= 0 or duration > get_settings().max_project_duration_seconds:
+    if not math.isfinite(duration) or duration <= 0 or duration > get_settings().max_project_duration_seconds:
         raise ProcessError(
             "unsupported_duration", "Media duration is invalid or exceeds the limit", 422
         )

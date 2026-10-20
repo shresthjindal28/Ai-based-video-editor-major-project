@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
-import { Sliders, Volume2, VolumeX, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Sliders, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export function ComparisonSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -52,7 +52,7 @@ export function ComparisonSlider() {
               : "text-stone-400 hover:text-white"
           }`}
         >
-          Voice Isolation & Sound Design
+          Sound & clarity
         </button>
       </div>
 
@@ -80,7 +80,7 @@ export function ComparisonSlider() {
                 Cinematic Lighting
               </div>
               <div className="mt-4 px-4 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-primary/40 text-primary font-mono text-xs sm:text-sm font-bold shadow-lg">
-                AutoCut Master • Kodak 2383 LUT • Studio Audio
+                Finished look • Warm color • Clear dialogue
               </div>
             </div>
 
@@ -91,13 +91,13 @@ export function ComparisonSlider() {
               </span>
               <div className="hidden sm:flex flex-col gap-1 items-end text-[10px] text-slate-300 font-mono bg-black/60 p-2 rounded border border-white/10">
                 <span className="text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Voice Isolation (-35dB hiss)
+                  <CheckCircle2 className="w-3 h-3" /> Clearer dialogue
                 </span>
                 <span className="text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> 3D Rec.709 Color Grade
+                  <CheckCircle2 className="w-3 h-3" /> Balanced color
                 </span>
                 <span className="text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Word-by-word Subtitles
+                  <CheckCircle2 className="w-3 h-3" /> Readable captions
                 </span>
               </div>
             </div>
@@ -107,11 +107,10 @@ export function ComparisonSlider() {
         {/* Left Layer (Before: Raw S-Log3 Footage) - Clipped by sliderPosition */}
         <div
           className="absolute inset-0 overflow-hidden bg-[#1a1b1f] border-r border-primary/80"
-          style={{ width: `${sliderPosition}%` }}
+          style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
         >
           <div
             className="absolute inset-0 w-full h-full flex items-center justify-center p-6 bg-gradient-to-br from-[#16171a] to-[#202227] filter grayscale-[45%] brightness-[85%] contrast-[75%]"
-            style={{ width: containerRef.current?.clientWidth || "100%" }}
           >
             {/* Flat uncalibrated simulation */}
             <div className="relative z-10 flex flex-col items-center">
@@ -119,7 +118,7 @@ export function ComparisonSlider() {
                 Flat Log Profile
               </div>
               <div className="mt-4 px-4 py-1.5 rounded-lg bg-black/70 border border-white/10 text-slate-400 font-mono text-xs sm:text-sm">
-                Raw S-Log3 • Awkward Pauses • Room Hum
+                Starting footage • Long pauses • Room noise
               </div>
             </div>
 
@@ -130,13 +129,13 @@ export function ComparisonSlider() {
               </span>
               <div className="hidden sm:flex flex-col gap-1 items-start text-[10px] text-slate-400 font-mono bg-black/60 p-2 rounded border border-white/10">
                 <span className="text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> Unprocessed Log Gamma
+                  <AlertCircle className="w-3 h-3" /> Flat starting look
                 </span>
                 <span className="text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> 8.4s Dead Silence & Stutters
+                  <AlertCircle className="w-3 h-3" /> Long pauses and false starts
                 </span>
                 <span className="text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> Unmixed 60Hz AC Hum
+                  <AlertCircle className="w-3 h-3" /> Distracting room noise
                 </span>
               </div>
             </div>

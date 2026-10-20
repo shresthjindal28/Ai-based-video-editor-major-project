@@ -7,6 +7,7 @@ import random
 import secrets
 from collections.abc import Awaitable, Callable
 from typing import Any, TypeVar, cast
+from weakref import WeakValueDictionary
 
 from redis.asyncio import Redis
 
@@ -16,7 +17,7 @@ from app.core.metrics import CACHE
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
 _redis: Redis | None = None
-_local_locks: dict[str, asyncio.Lock] = {}
+_local_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
 
 def redis_client() -> Redis:

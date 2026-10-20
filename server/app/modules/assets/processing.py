@@ -12,6 +12,7 @@ from app.modules.assets.models import AssetAnalysis, MediaAsset
 from app.modules.jobs.runtime import check_attempt, claim, fail_attempt, lease, progress
 from app.modules.jobs.service import append_event
 from app.modules.rendering.media_probe import generate_proxy, generate_thumbnail
+from app.modules.storage.service import keep, reserve
 
 
 async def process_asset(asset_id: UUID, job_id: UUID) -> None:
@@ -25,6 +26,8 @@ async def process_asset(asset_id: UUID, job_id: UUID) -> None:
     keys = [f"{prefix}/thumbnail.jpg", f"{prefix}/proxy.mp4"]
     completed = False
     try:
+        for key in keys:
+            await reserve(key)
         async with lease(job_id, fence) as cancelled:
             async with Session() as session:
                 asset = await session.get(MediaAsset, asset_id)
@@ -50,6 +53,7 @@ async def process_asset(asset_id: UUID, job_id: UUID) -> None:
                 if analysis and media_type == "video":
                     analysis.thumbnail_key, analysis.proxy_key = keys
                 asset.processing_status = "ready"
+                await keep(session, keys)
                 job.status, job.progress, job.completed_at = "completed", 100, now()
                 await append_event(session, job, "completed", {"status": "completed", "progress": 100})
                 await session.commit()

@@ -68,8 +68,8 @@ class OutputProfile(BaseModel):
     model_config = ConfigDict(extra="forbid")
     width: int = Field(ge=360, le=1920, multiple_of=2)
     height: int = Field(ge=360, le=1920, multiple_of=2)
-    fps_num: Literal[24, 25, 30, 50, 60] = 30
-    fps_den: Literal[1, 2, 3, 4] = 1
+    fps_num: int = Field(default=30, gt=0, le=60000)
+    fps_den: int = Field(default=1, gt=0, le=1001)
     format: Literal["mp4"] = "mp4"
     fit: Literal["contain", "cover"] = "contain"
     preset: Literal["preview", "1080p_landscape", "1080p_portrait", "1080p_square"] = (
@@ -78,6 +78,9 @@ class OutputProfile(BaseModel):
 
     @model_validator(mode="after")
     def supported_profile(self):
+        if (self.fps_num, self.fps_den) not in {(24,1),(25,1),(30,1),(50,1),(60,1),
+                                               (24000,1001),(30000,1001),(60000,1001)}:
+            raise ValueError("unsupported output frame rate")
         supported = {
             (1920, 1080),
             (1080, 1920),

@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Header, Query, Request
 from fastapi.responses import StreamingResponse
 
+from app.db.session import Session
 from app.modules.auth.dependencies import DB, CurrentUser
 from app.modules.jobs import repository, service
 from app.modules.jobs.schemas import JobOut
@@ -50,14 +51,19 @@ async def events(
     after: int = Query(default=0, ge=0),
     last_event_id: str | None = Header(default=None, alias="Last-Event-ID"),
 ):
-    job = await service.require_job(db, job_id, user.id)
+    await service.require_job(db, job_id, user.id)
+    owner_id = user.id
+    await db.rollback()
     cursor = max(after, int(last_event_id) if last_event_id and last_event_id.isdigit() else 0)
 
     async def stream() -> AsyncIterator[str]:
         nonlocal cursor
         idle = 0
         while not await request.is_disconnected():
-            rows = await repository.event_history(db, job_id, cursor)
+            async with Session() as session:
+                current = await service.require_job(session, job_id, owner_id)
+                rows = await repository.event_history(session, job_id, cursor)
+                status = current.status
             if rows:
                 for event in rows:
                     cursor = event.sequence
@@ -65,12 +71,11 @@ async def events(
                 idle = 0
             else:
                 idle += 1
-                if job.status in service.TERMINAL:
+                if status in service.TERMINAL:
                     break
                 if idle % 15 == 0:
                     yield ": heartbeat\n\n"
                 await asyncio.sleep(1)
-                await db.refresh(job)
         yield "event: stream_end\ndata: {}\n\n"
 
     return StreamingResponse(

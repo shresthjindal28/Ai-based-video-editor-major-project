@@ -30,8 +30,8 @@ export function HeroSection({ onOpenWaitlist }: HeroSectionProps) {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[5.4rem] tracking-tight text-[#fff8ee] max-w-5xl leading-[1.05]"
         >
-          Your footage. Your vision.{" "}
-          <span className="block italic text-gradient-primary mt-1">Edited by AI.</span>
+          Less time cutting.{" "}
+          <span className="block italic text-gradient-primary mt-1">More time creating.</span>
         </motion.h1>
 
         <motion.p
@@ -40,8 +40,7 @@ export function HeroSection({ onOpenWaitlist }: HeroSectionProps) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-6 text-base sm:text-xl text-stone-300/90 max-w-2xl font-normal leading-relaxed"
         >
-          Upload raw clips, describe the story you want, and let AutoCut AI synchronize
-          dialogue, cut dead-air, weave B-roll, grade color, and deliver a polished 4K video in minutes.
+          Get past the repetitive part of the edit. Bring your footage and brief; AutoCut AI helps tighten takes, place B-roll, and build a first cut you can make your own.
         </motion.p>
 
         <motion.div
@@ -61,17 +60,17 @@ export function HeroSection({ onOpenWaitlist }: HeroSectionProps) {
         >
           <div className="flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-primary" />
-            <span>Under 2-minute first cut</span>
+            <span>A head start on your first cut</span>
           </div>
           <span className="text-white/15">•</span>
           <div className="flex items-center gap-1.5">
             <Video className="w-3.5 h-3.5 text-rose-300" />
-            <span>Sony S-Log3 & Apple Log</span>
+            <span>Your footage. Your style.</span>
           </div>
           <span className="text-white/15">•</span>
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-teal-300" />
-            <span>Zero data model training</span>
+            <span>You have the final say</span>
           </div>
         </motion.div>
 

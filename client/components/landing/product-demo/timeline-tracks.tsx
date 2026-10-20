@@ -1,16 +1,14 @@
 "use client";
 
 import React from "react";
-import { TIMELINE_CUTS } from "@/lib/constants/demo-data";
-import { Scissors, Volume2, Type, Video, Film } from "lucide-react";
+import { Volume2, Type, Video, Film } from "lucide-react";
 
 interface TimelineTracksProps {
-  isPlaying: boolean;
   activeSecond: number;
   totalSeconds: number;
 }
 
-export function TimelineTracks({ isPlaying, activeSecond, totalSeconds }: TimelineTracksProps) {
+export function TimelineTracks({ activeSecond, totalSeconds }: TimelineTracksProps) {
   const progressPercent = (activeSecond / totalSeconds) * 100;
 
   return (

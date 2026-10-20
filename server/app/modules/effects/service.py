@@ -1,47 +1,14 @@
+from app.modules.editor.validators import EFFECT_RANGES
+
 REGISTRY = [
-    {
-        "id": "brightness",
-        "parameters": {"value": {"minimum": -1, "maximum": 1}},
-        "implementation": "MLT brightness filter",
-        "limitations": "Static level per clip",
-    },
-    {
-        "id": "contrast",
-        "parameters": {"value": {"minimum": 0, "maximum": 4}},
-        "implementation": "MLT contrast filter",
-        "limitations": "Static level per clip",
-    },
-    {
-        "id": "saturation",
-        "parameters": {"value": {"minimum": 0, "maximum": 3}},
-        "implementation": "MLT saturation filter",
-        "limitations": "Static level per clip",
-    },
-    {
-        "id": "zoom",
-        "parameters": {"value": {"minimum": 1, "maximum": 4}},
-        "implementation": "MLT affine filter",
-        "limitations": "Static digital zoom; no subject tracking",
-    },
-    {
-        "id": "pan",
-        "parameters": {"value": {"minimum": -1, "maximum": 1}},
-        "implementation": "MLT affine filter",
-        "limitations": "Static frame-relative pan",
-    },
-    {
-        "id": "tilt",
-        "parameters": {"value": {"minimum": -1, "maximum": 1}},
-        "implementation": "MLT affine filter",
-        "limitations": "Static frame-relative tilt",
-    },
-    {
-        "id": "blur",
-        "parameters": {"sigma": {"minimum": 0, "maximum": 20}},
-        "implementation": "MLT boxblur filter",
-        "limitations": "Uniform blur; no masks",
-    },
-]
+    {"id": name, "parameters": {key: {"minimum": limits[0], "maximum": limits[1]} for key, limits in parameters.items()},
+     "implementation": "FFmpeg clip preprocessing; MLT composition",
+     "keyframes": name in {"pan", "tilt", "zoom"},
+     "limitations": "Frame-linear camera animation; no tracking or masks" if name in {"pan", "tilt", "zoom"} else "Static parameters except frame-defined fades"}
+    for name, parameters in EFFECT_RANGES.items()
+] + [{"id": "lut", "parameters": {"name": {"enum": ["warm", "cool"]}},
+      "implementation": "FFmpeg lut3d", "keyframes": False,
+      "limitations": "Curated built-in creative LUTs; arbitrary paths and user LUT files are rejected"}]
 
 
 def list_effects():

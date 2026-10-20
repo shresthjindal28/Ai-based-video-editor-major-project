@@ -1,96 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import { createElement, useState } from "react";
+import Script from "next/script";
 import { ParticleFallback } from "./particle-fallback";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
-import { Sparkles, Play, ShieldAlert } from "lucide-react";
 
-interface ThrineHeroProps {
-  sceneId?: string;
-  className?: string;
-}
-
-export function ThrineHero({
-  sceneId = "106eb259-612f-4de7-95a4-ee2133d3af97",
-  className = "",
-}: ThrineHeroProps) {
-  const [useThrineEmbed, setUseThrineEmbed] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+export function ThrineHero({ className = "" }: { className?: string }) {
   const prefersReducedMotion = usePrefersReducedMotion();
-
-  // If user prefers reduced motion, always keep particle-fallback / poster mode
-  const canEmbed = !prefersReducedMotion;
+  const [playScene, setPlayScene] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const showScene = (!prefersReducedMotion || playScene) && !hasError;
 
   return (
-    <div
-      className={`relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[580px] rounded-[2rem] overflow-hidden border border-white/10 bg-[#110e0c]/90 shadow-2xl shadow-amber-950/30 backdrop-blur-md ${className}`}
-      aria-label="Cinematic 3D particle bloom visualization"
-      role="region"
-    >
-      {/* Self-hosted particle bloom is always active as immediate backdrop or primary view */}
-      <ParticleFallback className="absolute inset-0 z-0" />
-
-      {/* Optional Thrine Live 3D Scene Embed (Free Beta reference) */}
-      {useThrineEmbed && canEmbed && !hasError && (
-        <div className="absolute inset-0 z-10 transition-opacity duration-700">
-          {!iframeLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-20">
-              <div className="flex items-center gap-3 text-xs font-mono text-primary">
-                <span className="inline-block w-2 h-2 rounded-full bg-primary animate-ping" />
-                Initializing Thrine 3D Scene...
-              </div>
-            </div>
-          )}
-          <iframe
-            src={`https://thrine.app/embed/${sceneId}?autoplay=true&controls=false&loop=true`}
-            title="Thrine Wild Particle Bloom 3D Scene"
-            className={`w-full h-full border-0 transition-opacity duration-500 ${
-              iframeLoaded ? "opacity-100" : "opacity-0"
-            }`}
-            loading="lazy"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            sandbox="allow-scripts allow-same-origin"
-            onLoad={() => setIframeLoaded(true)}
+    <div className={`relative w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[#110e0c] shadow-2xl ${className}`}>
+      {showScene ? (
+        <>
+          <Script
+            src="https://thrine.app/embed/v1.js"
+            type="module"
+            strategy="afterInteractive"
             onError={() => setHasError(true)}
           />
-        </div>
-      )}
-
-      {/* Decorative gradient scrim to maintain high contrast with foreground copy */}
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-[#0c0a09] via-transparent to-transparent opacity-80" />
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-[#0c0a09]/60 via-transparent to-[#0c0a09]/60" />
-
-      {/* Interactive Controls Overlay for Tech Demonstration */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
-        <div className="flex items-center gap-2 text-xs font-mono text-stone-300">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-          </span>
-          <span>Mode: {useThrineEmbed ? "Thrine 3D Embed (Beta)" : "Self-Hosted Particle Bloom"}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {canEmbed && !hasError && (
-            <button
-              onClick={() => setUseThrineEmbed(!useThrineEmbed)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-colors border bg-white/5 hover:bg-white/10 text-stone-200 border-white/15 cursor-pointer"
-              title="Toggle between self-hosted canvas bloom and external Thrine WebGL scene"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span>{useThrineEmbed ? "Switch to Canvas" : "Load Thrine 3D Scene"}</span>
+          {createElement("model-embed", {
+            project: "e_47f3c16edd3ad93f7e0f",
+            style: { display: "block", width: "100%", aspectRatio: "1297 / 858" },
+            "aria-label": "Interactive 3D scene",
+          })}
+        </>
+      ) : (
+        <div className="relative w-full aspect-[1297/858]">
+          <ParticleFallback className="absolute inset-0" />
+          {!hasError && (
+            <button className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full border border-white/20 bg-black/70 px-5 py-2 text-sm text-white cursor-pointer" onClick={() => setPlayScene(true)}>
+              Play 3D scene
             </button>
           )}
-
-          {hasError && (
-            <div className="flex items-center gap-1 text-xs text-amber-400 font-mono">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Fallback Active</span>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

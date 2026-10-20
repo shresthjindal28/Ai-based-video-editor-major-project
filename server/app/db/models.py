@@ -8,6 +8,7 @@ from app.modules.exports.models import *  # noqa: F403
 from app.modules.jobs.models import *  # noqa: F403
 from app.modules.notifications.models import *  # noqa: F403
 from app.modules.projects.models import *  # noqa: F403
+from app.modules.storage.models import *  # noqa: F403
 from app.modules.subscriptions.models import *  # noqa: F403
 from app.modules.timelines.models import *  # noqa: F403
 from app.modules.uploads.models import *  # noqa: F403

@@ -95,7 +95,7 @@ def build_mlt_xml(plan: TimelinePlan, assets: dict[UUID, Path], workdir: Path,
         ET.SubElement(tractor, "track", {"producer": f"video_playlist_{track}_0"})
         ET.SubElement(tractor, "track", {"producer": f"video_playlist_{track}_1"})
         for clip in lane_clips[1]:
-            segments = []
+            segments: list[tuple[int, int, str | None, bool]] = []
             cursor = clip.timeline_start_frame
             for transition in sorted((t for t in plan.transitions if clip.id in {t.from_clip, t.to_clip}),
                                      key=lambda t: next(c.timeline_start_frame for c in clips if c.id == t.to_clip)):
@@ -109,25 +109,25 @@ def build_mlt_xml(plan: TimelinePlan, assets: dict[UUID, Path], workdir: Path,
             if cursor < clip.timeline_start_frame+clip.duration_frames:
                 segments.append((cursor, clip.timeline_start_frame+clip.duration_frames, None, False))
             for start, stop, kind, incoming in segments:
-                transition = ET.SubElement(tractor, "transition", {"in": str(start), "out": str(stop-1)})
-                prop(transition, "mlt_service", "composite")
-                prop(transition, "a_track", 0)
-                prop(transition, "b_track", 1)
-                prop(transition, "progressive", 1)
-                prop(transition, "distort", 1)
+                compositor = ET.SubElement(tractor, "transition", {"in": str(start), "out": str(stop-1)})
+                prop(compositor, "mlt_service", "composite")
+                prop(compositor, "a_track", 0)
+                prop(compositor, "b_track", 1)
+                prop(compositor, "progressive", 1)
+                prop(compositor, "distort", 1)
                 length = max(1, stop-start-1)
                 if kind == "slide":
                     first, last = (width, 0) if incoming else (0, -width)
-                    geometry = f"0={first}/0:{width}x{height}:100;{length}={last}/0:{width}x{height}:100"
+                    geometry = f"0={first}/0:{width}x{height}:1;{length}={last}/0:{width}x{height}:1"
                 elif kind:
-                    first, last = (0, 100) if incoming else (100, 0)
+                    first, last = (0, 1) if incoming else (1, 0)
                     geometry = f"0=0/0:{width}x{height}:{first};{length}=0/0:{width}x{height}:{last}"
                 else:
-                    geometry = f"0/0:{width}x{height}:100"
-                prop(transition, "geometry", geometry)
+                    geometry = f"0/0:{width}x{height}:1"
+                prop(compositor, "geometry", geometry)
                 if kind == "wipe":
-                    prop(transition, "luma", wipe_path)
-                    prop(transition, "softness", 0.01)
+                    prop(compositor, "luma", wipe_path)
+                    prop(compositor, "softness", 0.01)
         mix = ET.SubElement(tractor, "transition", {"in": "0", "out": str(end-1)})
         for name, value in {"mlt_service": "mix", "a_track": 0, "b_track": 1, "always_active": 1, "sum": 1}.items():
             prop(mix, name, value)
@@ -139,7 +139,7 @@ def build_mlt_xml(plan: TimelinePlan, assets: dict[UUID, Path], workdir: Path,
         if index <= len(track_ids):
             composite = ET.SubElement(main, "transition", {"in": "0", "out": str(end-1)})
             for name, value in {"mlt_service": "composite", "a_track": 0, "b_track": index,
-                                "geometry": f"0/0:{width}x{height}:100", "progressive": 1}.items():
+                                "geometry": f"0/0:{width}x{height}:1", "progressive": 1}.items():
                 prop(composite, name, value)
         mix = ET.SubElement(main, "transition", {"in": "0", "out": str(end-1)})
         for name, value in {"mlt_service": "mix", "a_track": 0, "b_track": index, "always_active": 1, "sum": 1}.items():

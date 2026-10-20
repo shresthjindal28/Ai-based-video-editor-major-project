@@ -38,7 +38,7 @@ async def verify_render(path: Path, plan: TimelinePlan) -> dict:
         )
     if get_settings().decode_check:
         code, _, _ = await run_media_command(
-            [get_settings().ffmpeg_binary, "-v", "error", "-i", str(path), "-f", "null", "-"],
+            [get_settings().ffmpeg_binary, "-v", "error", "-xerror", "-i", str(path), "-f", "null", "-"],
             timeout=get_settings().process_timeout_seconds,
         )
         if code:

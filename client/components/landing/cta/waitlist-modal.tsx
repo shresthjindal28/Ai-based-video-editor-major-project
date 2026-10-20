@@ -44,25 +44,25 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
             </div>
             <h3 className="text-xl font-serif text-white">You&apos;re on the private beta list</h3>
             <p className="text-sm text-stone-300">
-              We&apos;ve dispatched an invitation packet to <span className="text-primary font-mono">{email}</span>. Your key unlocks 10 free 4K renders and NLE XML exports.
+              We&apos;ve dispatched an invitation packet to <span className="text-primary font-mono">{email}</span>. Explore a faster starting point for your next edit.
             </p>
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 w-full text-center">
               <span className="text-xs font-mono text-stone-400">Invitation ticket</span>
               <p className="text-sm font-mono font-bold text-primary mt-1">AUTOCUT-VIP-2026</p>
             </div>
             <Button onClick={onClose} variant="primary" className="w-full">
-              Back to Experience
+              Back to the page
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-serif text-white">Claim early access</h3>
-              <p className="text-xs text-stone-400 mt-1">Limited rollout · 10 complimentary 4K exports</p>
+              <p className="text-xs text-stone-400 mt-1">Early access for video editors</p>
             </div>
 
             <p className="text-sm text-stone-300 leading-relaxed">
-              Experience the autonomous video director before public release. Connect your Sony, Apple, or Canon footage and cut in minutes.
+              Spend more of your editing day on the story. Join the beta to explore first cuts, dialogue cleanup, and social cutdowns.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-3 pt-2">

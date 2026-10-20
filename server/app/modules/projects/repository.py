@@ -13,7 +13,7 @@ async def owned(
         Project.id == project_id, Project.owner_id == owner_id, Project.deleted_at.is_(None)
     )
     if lock:
-        query = query.with_for_update()
+        query = query.with_for_update().execution_options(populate_existing=True)
     return await session.scalar(query)
 
 

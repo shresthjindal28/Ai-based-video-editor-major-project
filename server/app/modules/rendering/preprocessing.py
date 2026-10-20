@@ -11,7 +11,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 
 from app.core.config import get_settings
 from app.core.exceptions import ProcessError
-from app.modules.editor.schemas import TimelinePlan
+from app.modules.editor.schemas import EffectSpec, TimelinePlan
 from app.modules.rendering.media_probe import probe, run_media_command
 
 
@@ -58,7 +58,7 @@ async def prepare(plan: TimelinePlan, assets: dict[UUID, Path], work: Path,
         else:
             vf.append(f"crop={width}:{height}")
         vf.append("setsar=1")
-        camera = {effect.id: effect for effect in clip.effects if effect.id in {"zoom", "pan", "tilt"}}
+        camera: dict[str, EffectSpec] = {effect.id: effect for effect in clip.effects if effect.id in {"zoom", "pan", "tilt"}}
         if camera:
             expressions = {}
             for name, default in (("zoom", 1), ("pan", 0), ("tilt", 0)):
@@ -128,17 +128,45 @@ async def prepare(plan: TimelinePlan, assets: dict[UUID, Path], work: Path,
     return plan.model_copy(update={"clips": clips, "audio": audio_tracks}), paths
 
 
+def title_image(title, output: Path, width: int, height: int) -> None:
+    import textwrap
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default(size=title.font_size)
+    columns = max(5, int(width * 1.5 / title.font_size))
+    text = "\n".join(textwrap.fill(line, width=columns) for line in title.text.splitlines())
+    bounds = draw.multiline_textbbox((0, 0), text, font=font, align="center", stroke_width=1)
+    text_width, text_height = bounds[2] - bounds[0], bounds[3] - bounds[1]
+    y = {"top": height * 0.08, "center": (height-text_height)/2,
+         "bottom": height*0.9-text_height}[title.position]
+    draw.multiline_text(((width-text_width)/2, y), text, font=font, fill=title.color,
+                        align="center", stroke_width=1, stroke_fill="black")
+    image.save(output)
+
+
 async def overlay_titles(source: Path, output: Path, plan: TimelinePlan, work: Path,
                          cancelled: asyncio.Event | None) -> None:
+    import anyio
+
     filters = []
+    args = [get_settings().ffmpeg_binary, "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i", str(source)]
     for index, title in enumerate(plan.titles):
-        path = work / f"title-{index}.txt"
-        path.write_text(title.text)
-        y = {"top": "h*0.08", "center": "(h-text_h)/2", "bottom": "h*0.9-text_h"}[title.position]
+        path = work / f"title-{index}.png"
+        await anyio.to_thread.run_sync(title_image, title, path, plan.output.width, plan.output.height)
+        args += ["-loop", "1", "-i", str(path)]
         end = title.start_frame + title.duration_frames - 1
-        filters.append(f"drawtext=textfile={path}:expansion=none:fontsize={title.font_size}:fontcolor={title.color}:x=(w-text_w)/2:y={y}:enable='between(n,{title.start_frame},{end})'")
-    code, _, error = await run_media_command([get_settings().ffmpeg_binary, "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-        "-i", str(source), "-vf", ",".join(filters), "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-threads", "2",
-        "-c:a", "copy", "-movflags", "+faststart", str(output)], cancelled=cancelled)
+        previous = "0:v" if index == 0 else f"v{index-1}"
+        filters.append(f"[{previous}][{index+1}:v]overlay=shortest=1:enable='between(n,{title.start_frame},{end})'[v{index}]")
+    duration = max([c.timeline_start_frame+c.duration_frames for c in plan.clips] +
+                   [a.timeline_start_frame+a.duration_frames for a in plan.audio]) * plan.output.fps_den/plan.output.fps_num
+    args += ["-filter_complex_threads", "1", "-filter_complex", ";".join(filters),
+             "-map", f"[v{len(plan.titles)-1}]", "-map", "0:a?", "-t", str(duration),
+             "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-threads", "2",
+             "-c:a", "copy", "-movflags", "+faststart", str(output)]
+    code, _, error = await run_media_command(args, cancelled=cancelled)
     if code:
-        raise ProcessError("title_processing_failed", "Title rendering failed; FFmpeg drawtext support is required", 422, details=error.decode(errors="replace")[-1500:])
+        raise ProcessError("title_processing_failed", "Title overlay failed", 422,
+                           details=error.decode(errors="replace")[-1500:])

@@ -39,7 +39,7 @@ export function CtaSection({ onOpenWaitlist }: CtaSectionProps) {
             </h2>
 
             <p className="mt-5 text-base sm:text-lg text-stone-300/90 leading-relaxed">
-              Stop drowning in raw footage and tedious cuts. Claim early access to AutoCut AI and deliver broadcast-grade first cuts in under 2 minutes.
+              Give your next edit a head start. Explore AutoCut AI for the assemblies, cutdowns, and cleanup that take time away from your creative work.
             </p>
 
             {submitted ? (
@@ -58,7 +58,7 @@ export function CtaSection({ onOpenWaitlist }: CtaSectionProps) {
                   className="w-full sm:flex-1 h-11 px-4 rounded-full bg-transparent text-white placeholder-stone-500 text-sm outline-none"
                 />
                 <Button type="submit" size="lg" variant="primary" className="w-full sm:w-auto">
-                  <span>Get Started</span>
+                  <span>Join the beta</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </form>
@@ -67,7 +67,7 @@ export function CtaSection({ onOpenWaitlist }: CtaSectionProps) {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-stone-400 font-mono">
               <div className="flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-primary" />
-                <span>10 free 4K exports included</span>
+                <span>Built for your editing day</span>
               </div>
               <span className="text-white/15">•</span>
               <div className="flex items-center gap-1.5">

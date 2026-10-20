@@ -11,14 +11,14 @@ export function HowItWorksSection() {
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16">
           <Badge variant="violet" className="mb-4">
             <GitPullRequest className="w-3 h-3" />
-            Autonomous Pipeline
+            From brief to final review
           </Badge>
           <h2 className="font-serif text-4xl sm:text-5xl tracking-tight text-[#fff8ee] leading-tight">
-            How AutoCut AI transforms your footage{" "}
-            <span className="italic text-gradient-primary">in 6 steps.</span>
+            A familiar editing workflow,{" "}
+            <span className="italic text-gradient-primary">with a head start.</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-stone-400">
-            From raw camera takes to Final Cut Pro XML or 4K HDR master, AutoCut AI handles the heavy lifting without stripping away your creative direction.
+            Bring the footage, set the direction, and shape the result. You stay involved from the first selects to the final watch-through.
           </p>
         </div>
 

@@ -16,8 +16,11 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     worker_concurrency=settings.max_concurrent_renders,
     task_track_started=True,
+    task_ignore_result=True,
     broker_transport_options={"visibility_timeout": settings.process_timeout_seconds + 300,
-                              "socket_connect_timeout": 5, "socket_timeout": 5},
+                              "socket_connect_timeout": 5, "socket_timeout": 5,
+                              "global_keyprefix": settings.celery_queue + ":"},
+    result_backend_transport_options={"global_keyprefix": settings.celery_queue + ":"},
     broker_connection_timeout=5,
     task_publish_retry=False,
     result_expires=3600,
@@ -28,6 +31,7 @@ celery_app.conf.update(
     beat_schedule={
         "dispatch-outbox": {"task": "app.workers.tasks.dispatch_outbox", "schedule": 3.0},
         "recover-stale-jobs": {"task": "app.workers.tasks.recover_stale_jobs", "schedule": 60.0},
+        "cleanup-files": {"task": "app.workers.tasks.cleanup_files", "schedule": 60.0},
     },
 )
 if settings.redis_url.startswith("rediss://"):

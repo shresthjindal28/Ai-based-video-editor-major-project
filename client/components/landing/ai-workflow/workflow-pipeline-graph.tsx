@@ -8,32 +8,32 @@ export function WorkflowPipelineGraph() {
   const [activeNode, setActiveNode] = useState<PipelineNode>(ARCHITECTURE_PIPELINE[2]);
 
   const nodeDetails: Record<string, { inputs: string; engine: string; output: string }> = {
-    ingest: {
-      inputs: "4K / 8K RAW Clips, S-Log3, Apple Log, ProRes MOV",
-      engine: "Hardware NVDEC chunked transcode into 1080p proxy buffers",
-      output: "Zero-latency streaming proxies + audio stems",
-    },
-    analysis: {
-      inputs: "Proxy video frames + 48kHz audio track",
-      engine: "Whisper speech transcription + Gemini Vision scene tags + Librosa beat detection",
-      output: "Frame-by-frame JSON metadata of faces, topic tags, and audio transients",
-    },
-    director: {
-      inputs: "User prompt instructions + sensory metadata graph",
-      engine: "Multi-Modal Narrative Planner generating Cut Decision Graph",
-      output: "Validated JSON Decision List with cut timecodes, zoom levels, and B-roll indices",
-    },
-    render: {
-      inputs: "Original camera masters + Cut Decision List + 3D LUT cubes",
-      engine: "MLT C++ framework compositor + GPU NVENC acceleration",
-      output: "Multi-track rendered video with audio sidechain ducking & burned subtitles",
-    },
-    delivery: {
-      inputs: "Rendered frames & synchronized audio",
-      engine: "Container packager + Final Cut Pro XML / DaVinci Resolve exporter",
-      output: "Apple ProRes 422 4K Master, MP4 H.265 web stream, FCPXML timeline",
-    },
-  };
+  "ingest": {
+    "inputs": "The interview, B-roll, and music for your project.",
+    "engine": "Bring the material for one story together before you start cutting.",
+    "output": "A clear starting point for your selects."
+  },
+  "analysis": {
+    "inputs": "Your takes and the brief you want to deliver.",
+    "engine": "Look for strong lines, useful cutaways, and places to tighten the pace.",
+    "output": "Highlights to build the sequence around."
+  },
+  "director": {
+    "inputs": "Your selects, target length, and creative direction.",
+    "engine": "Shape an opening, a clear middle, and an ending that lands.",
+    "output": "A first cut you can review and change."
+  },
+  "render": {
+    "inputs": "The sequence you want to refine.",
+    "engine": "Check the rhythm, caption readability, dialogue, and overall look.",
+    "output": "A more considered cut ready for a full watch-through."
+  },
+  "delivery": {
+    "inputs": "Your reviewed edit and its destination.",
+    "engine": "Check the crop, captions, and sound before you share.",
+    "output": "A final review with your audience in mind."
+  }
+};
 
   const currentDetail = nodeDetails[activeNode.id];
 
@@ -54,7 +54,7 @@ export function WorkflowPipelineGraph() {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-mono font-bold text-stone-400">
-                  STAGE 0{index + 1}
+                  STEP 0{index + 1}
                 </span>
                 {isSelected && (
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -90,7 +90,7 @@ export function WorkflowPipelineGraph() {
 
           <div className="flex items-center gap-2 text-xs font-mono text-teal-300 bg-teal-950/40 px-3 py-1 rounded-full border border-teal-800/40">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>GPU Accelerated Node</span>
+            <span>Your creative checkpoint</span>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export function WorkflowPipelineGraph() {
           <div className="p-4 rounded-2xl bg-black/40 border border-white/10">
             <div className="flex items-center gap-1.5 text-xs font-mono text-stone-400 mb-2">
               <HardDrive className="w-3.5 h-3.5 text-primary" />
-              <span>Input Data</span>
+              <span>Start with</span>
             </div>
             <p className="text-xs text-stone-200 font-mono leading-relaxed">
               {currentDetail.inputs}
@@ -108,7 +108,7 @@ export function WorkflowPipelineGraph() {
           <div className="p-4 rounded-2xl bg-primary/8 border border-primary/20">
             <div className="flex items-center gap-1.5 text-xs font-mono text-primary mb-2">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Execution Engine</span>
+              <span>Focus on</span>
             </div>
             <p className="text-xs text-stone-200 font-mono leading-relaxed">
               {currentDetail.engine}
@@ -118,7 +118,7 @@ export function WorkflowPipelineGraph() {
           <div className="p-4 rounded-2xl bg-black/40 border border-white/10">
             <div className="flex items-center gap-1.5 text-xs font-mono text-teal-300 mb-2">
               <Terminal className="w-3.5 h-3.5" />
-              <span>Generated Artifact</span>
+              <span>Move forward with</span>
             </div>
             <p className="text-xs text-stone-200 font-mono leading-relaxed">
               {currentDetail.output}

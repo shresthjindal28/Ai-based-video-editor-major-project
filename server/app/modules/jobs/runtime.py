@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.exceptions import ProcessError
+from app.core.metrics import JOBS, RETRIES
 from app.db.base import now
 from app.db.session import Session
 from app.modules.jobs.models import EditJob, Outbox
@@ -57,6 +58,9 @@ def is_transient(exc: Exception) -> bool:
         return True
     if isinstance(exc, DBAPIError):
         return exc.connection_invalidated or getattr(exc.orig, "sqlstate", None) in {"40001", "40P01", "08006", "08001"}
+    response = getattr(exc, "response", {})
+    if isinstance(response, dict) and str(response.get("Error", {}).get("Code")) in {"500", "503", "SlowDown", "ServiceUnavailable", "RequestTimeout"}:
+        return True
     return type(exc).__name__ in {"EndpointConnectionError", "ReadTimeoutError", "ConnectionClosedError"}
 
 
@@ -68,10 +72,11 @@ async def fail_attempt(job_id: UUID, fence: int, exc: Exception) -> None:
         job = await session.scalar(select(EditJob).where(EditJob.id == job_id).with_for_update())
         if job is None or job.fence != fence or job.status not in {"processing", "cancelling"}:
             return
-        if job.status == "cancelling" or getattr(exc, "code", "") == "job_cancelled":
+        if job.status == "cancelling":
             job.status, job.completed_at = "cancelled", now()
-        elif is_transient(exc) and job.retry_count < get_settings().max_job_retries:
+        elif (is_transient(exc) or getattr(exc, "code", "") == "job_cancelled") and job.retry_count < get_settings().max_job_retries:
             job.retry_count += 1
+            RETRIES.labels(kind=job.job_type).inc()
             job.status, job.progress, job.heartbeat_at = "pending", 0, None
             delay = min(300, 2 ** job.retry_count) + random.uniform(0, 3)
             session.add(Outbox(job_id=job.id, available_at=now() + timedelta(seconds=delay)))
@@ -83,10 +88,16 @@ async def fail_attempt(job_id: UUID, fence: int, exc: Exception) -> None:
                     kind="job_failed", message="Background media processing failed"))
         job.error_code = getattr(exc, "code", "processing_failed")
         job.error_message = getattr(exc, "message", "Background processing failed")[:1000]
+        if job.asset_id:
+            from app.modules.assets.models import MediaAsset
+            asset = await session.scalar(select(MediaAsset).where(MediaAsset.id == job.asset_id).with_for_update())
+            if asset:
+                asset.processing_status = job.status
         await append_event(session, job, job.status, {
             "status": job.status, "error_code": job.error_code,
             "message": job.error_message, "retry_count": job.retry_count,
         })
+        JOBS.labels(kind=job.job_type, outcome=job.status).inc()
         await session.commit()
 
 

@@ -20,14 +20,14 @@ export function InteractiveEditorPreview() {
   const [processingStage, setProcessingStage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeSecond, setActiveSecond] = useState(14);
-  const [selectedCut, setSelectedCut] = useState(TIMELINE_CUTS[1]);
+  const selectedCut = TIMELINE_CUTS[1];
 
   const stages = [
-    "Ingesting 4K S-Log3 clips & generating lightweight proxies...",
-    "Whisper transcribing speech & stripping 4.2s awkward pauses...",
-    "Gemini Vision detecting emotion peaks & matching drone B-roll...",
-    "Aligning audio cuts with bass drop & applying Kodak 2383 3D LUT...",
-    "Master timeline generated • 45s Launch Cut Ready"
+    "Getting the sample clips ready...",
+    "Finding the strongest lines and trimming long pauses...",
+    "Choosing supporting shots for the story...",
+    "Bringing the pacing, music, and look together...",
+    "Sample first cut ready for your review"
   ];
 
   const handleRunAi = () => {
@@ -171,12 +171,12 @@ export function InteractiveEditorPreview() {
               {isProcessing ? (
                 <>
                   <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1" />
-                  <span>Autonomous Processing...</span>
+                  <span>Building Sample Cut...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 mr-1" />
-                  <span>Generate Autonomous Cut</span>
+                  <span>Build First Cut</span>
                 </>
               )}
             </Button>
@@ -192,7 +192,7 @@ export function InteractiveEditorPreview() {
                 <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/40 flex items-center justify-center mb-4 text-primary animate-pulse">
                   <Sparkles className="w-6 h-6" />
                 </div>
-                <p className="text-sm font-semibold text-white mb-2">AutoCut AI Reasoning</p>
+                <p className="text-sm font-semibold text-white mb-2">Shaping your sample edit</p>
                 <p className="text-xs font-mono text-primary bg-primary/10 border border-primary/25 px-3 py-1.5 rounded-lg">
                   {stages[processingStage]}
                 </p>
@@ -211,7 +211,7 @@ export function InteractiveEditorPreview() {
                 {/* Subtitle Kinetic Overlay */}
                 <div className="absolute bottom-12 inset-x-8 text-center pointer-events-none z-10">
                   <span className="inline-block px-3 py-1 rounded bg-black/80 backdrop-blur-md border border-white/10 text-white font-bold text-sm sm:text-base tracking-wide drop-shadow-md">
-                    "We built this autonomous editor <span className="text-primary">from the ground up</span>"
+                    &quot;Every great edit starts <span className="text-primary">with a story</span>&quot;
                   </span>
                 </div>
 
@@ -219,10 +219,10 @@ export function InteractiveEditorPreview() {
                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-mono text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Kodak 2383 LUT Active
+                    Warm film look
                   </span>
                   <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-mono text-stone-300 border border-white/10">
-                    Auto-Duck: -18dB
+                    Music lowered under dialogue
                   </span>
                 </div>
 
@@ -247,7 +247,7 @@ export function InteractiveEditorPreview() {
             <div className="flex items-center gap-2">
               <span className="text-stone-400 font-mono text-[11px] flex items-center gap-1">
                 <Scissors className="w-3 h-3 text-primary" />
-                Active Cut Decision:
+                Suggested cut:
               </span>
               <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium border border-primary/20 text-[11px]">
                 {selectedCut.label} ({selectedCut.time})
@@ -256,7 +256,7 @@ export function InteractiveEditorPreview() {
 
             <div className="flex items-center gap-1.5 text-[10px] text-stone-400 font-mono">
               <CheckCircle2 className="w-3.5 h-3.5 text-teal-300" />
-              <span>Grounded in speech pace & beat drop</span>
+              <span>Cutaway supports the dialogue</span>
             </div>
           </div>
         </div>
@@ -264,7 +264,6 @@ export function InteractiveEditorPreview() {
 
       {/* Multi-Track Interactive Timeline */}
       <TimelineTracks
-        isPlaying={isPlaying}
         activeSecond={activeSecond}
         totalSeconds={45}
       />

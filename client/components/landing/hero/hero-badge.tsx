@@ -9,12 +9,12 @@ export function HeroBadge() {
         <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
       </span>
       <span className="text-[11px] font-mono font-medium text-primary tracking-[0.14em] uppercase">
-        Private Beta 2.0
+        For video editors
       </span>
       <span className="text-white/20">•</span>
       <span className="text-xs font-medium text-stone-300 hidden sm:inline-flex items-center gap-1">
         <Sparkles className="w-3 h-3 text-teal-300" />
-        Multi-modal grounded timeline
+        Your creative head start
       </span>
     </div>
   );

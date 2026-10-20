@@ -10,14 +10,14 @@ export function BeforeAfterSection() {
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-14">
           <Badge variant="cyan" className="mb-4">
             <Eye className="w-3 h-3" />
-            Visual Proof
+            Explore the look
           </Badge>
           <h2 className="font-serif text-4xl sm:text-5xl tracking-tight text-[#fff8ee] leading-tight">
             See the difference{" "}
             <span className="italic text-gradient-primary">frame by frame.</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-stone-400">
-            Compare flat, unprocessed camera footage with AutoCut AI&apos;s autonomous first-cut: color graded, noise isolated, beat matched, and rhythmically paced.
+            Drag across this illustration to explore the difference between a flat starting image and a warmer, finished look. This is a visual example, rather than processed footage.
           </p>
         </div>
 

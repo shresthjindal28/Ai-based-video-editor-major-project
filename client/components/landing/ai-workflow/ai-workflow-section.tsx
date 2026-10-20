@@ -10,14 +10,14 @@ export function AiWorkflowSection() {
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16">
           <Badge variant="violet" className="mb-4">
             <Network className="w-3 h-3" />
-            System Architecture
+            Built around your process
           </Badge>
           <h2 className="font-serif text-4xl sm:text-5xl tracking-tight text-[#fff8ee] leading-tight">
-            The Autonomous Editing{" "}
-            <span className="italic text-gradient-primary">Pipeline.</span>
+            From first selects to{" "}
+            <span className="italic text-gradient-primary">final approval.</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-stone-400">
-            A battle-tested distributed engine combining Whisper speech recognition, Gemini multimodal vision tokens, and C++ MLT rendering.
+            Explore each part of the edit. See where AutoCut AI can help and where your creative judgment makes the difference.
           </p>
         </div>
 

@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     DateTime,
+    CheckConstraint,
     ForeignKey,
     Index,
     String,
@@ -35,6 +36,8 @@ class EditJob(IdentityMixin, Base):
     event_sequence: Mapped[int] = mapped_column(default=0)
     parameters: Mapped[dict] = mapped_column(JSONB, default=dict)
     __table_args__ = (
+        CheckConstraint("status IN ('pending','queued','processing','completed','failed','cancelling','cancelled')", name="job_status"),
+        CheckConstraint("progress >= 0 AND progress <= 100 AND retry_count >= 0 AND fence >= 0", name="job_counters"),
         Index(
             "uq_active_version_render",
             "version_id",

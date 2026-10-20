@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy import text
+from starlette.exceptions import HTTPException
 
+from app.common.middleware.body_size import RequestSizeMiddleware
 from app.core.config import get_settings
 from app.core.exceptions import DomainError
 from app.core.logging import configure_logging, request_id
@@ -19,6 +23,7 @@ from app.db.session import Session, dispose_engine
 from app.integrations.redis_client import close_redis, redis_client
 from app.modules.analytics.router import router as analytics_router
 from app.modules.assets.router import router as assets_router
+from app.modules.audio.router import router as audio_router
 from app.modules.auth.router import router as auth_router
 from app.modules.billing.router import router as billing_router
 from app.modules.editor.router import router as editor_router
@@ -29,6 +34,7 @@ from app.modules.notifications.router import router as notifications_router
 from app.modules.projects.router import router as projects_router
 from app.modules.rendering.router import router as rendering_router
 from app.modules.subscriptions.router import router as subscriptions_router
+from app.modules.timelines.router import router as timelines_router
 from app.modules.transitions.router import router as transitions_router
 from app.modules.uploads.router import router as uploads_router
 from app.modules.users.router import router as users_router
@@ -50,6 +56,7 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title=settings.app_name, version="1.0.0", debug=settings.debug, lifespan=lifespan
     )
+    application.add_middleware(RequestSizeMiddleware, settings=settings)
     if settings.cors_origins:
         application.add_middleware(
             CORSMiddleware,
@@ -62,6 +69,7 @@ def create_app() -> FastAPI:
                 "Idempotency-Key",
                 "Last-Event-ID",
                 "Range",
+                "Upload-Offset",
             ],
             expose_headers=["Content-Range", "Accept-Ranges", "Content-Length", "X-Request-ID"],
         )
@@ -80,6 +88,8 @@ def create_app() -> FastAPI:
                 if "/assets" in request.url.path
                 else settings.request_max_bytes
             )
+            if request.url.path.endswith("/chunks"):
+                route_limit = settings.upload_chunk_size_bytes
             if int(request.headers["content-length"]) > route_limit:
                 request_id.reset(token)
                 return JSONResponse(
@@ -131,6 +141,19 @@ def create_app() -> FastAPI:
             status_code=500,
         )
 
+    @application.exception_handler(RequestValidationError)
+    async def validation_error_handler(_: Request, exc: RequestValidationError):
+        return JSONResponse({"error": {"code": "validation_error", "message": "Request validation failed",
+            "details": [{"location": list(error["loc"]), "message": error["msg"], "type": error["type"]}
+                        for error in exc.errors()]}}, status_code=422)
+
+    @application.exception_handler(HTTPException)
+    async def http_error_handler(_: Request, exc: HTTPException):
+        codes = {401: "credentials_required", 404: "not_found", 413: "request_too_large"}
+        return JSONResponse({"error": {"code": codes.get(exc.status_code, "http_error"),
+                                       "message": str(exc.detail)}}, status_code=exc.status_code,
+                            headers=exc.headers)
+
     @application.get("/health")
     async def health():
         return {"status": "ok", "service": "main-backend"}
@@ -149,6 +172,14 @@ def create_app() -> FastAPI:
             checks["redis"] = "ok"
         except Exception:
             checks["redis"] = "unavailable"
+        for name, binary in (("ffmpeg", settings.ffmpeg_binary), ("ffprobe", settings.ffprobe_binary),
+                             ("mlt", settings.mlt_render_binary)):
+            checks[name] = "ok" if shutil.which(binary) else "unavailable"
+        checks["authentication"] = "ok" if all((settings.auth_jwks_url, settings.auth_issuer, settings.auth_audience)) else "unconfigured"
+        checks["storage"] = "ok"
+        if settings.storage_backend == "r2" and not all((settings.r2_endpoint_url, settings.r2_bucket,
+                                                        settings.r2_access_key_id, settings.r2_secret_access_key)):
+            checks["storage"] = "unconfigured"
         status = 200 if all(value == "ok" for value in checks.values()) else 503
         return JSONResponse(
             {"status": "ready" if status == 200 else "not_ready", "checks": checks},
@@ -166,6 +197,8 @@ def create_app() -> FastAPI:
         uploads_router,
         assets_router,
         editor_router,
+        timelines_router,
+        audio_router,
         effects_router,
         transitions_router,
         jobs_router,

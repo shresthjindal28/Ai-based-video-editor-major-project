@@ -10,14 +10,14 @@ export function DemoSection() {
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-14">
           <Badge variant="cyan" className="mb-4">
             <Sparkles className="w-3 h-3" />
-            Interactive Product Experience
+            Try the editing preview
           </Badge>
           <h2 className="font-serif text-4xl sm:text-5xl tracking-tight text-[#fff8ee] leading-tight">
             From raw clips to finished cut{" "}
-            <span className="italic text-gradient-primary">in one command.</span>
+            <span className="italic text-gradient-primary">with your direction.</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-stone-400">
-            Select a prompt preset below or hit <span className="text-primary font-mono">Generate Autonomous Cut</span> to see AutoCut AI analyze audio waveforms, trim silences, insert B-roll, and grade color in real-time.
+            Choose a sample brief below, then hit <span className="text-primary font-mono">Build First Cut</span> to walk through an illustrative edit. This demo uses sample clips and simulated progress; it does not process or export video.
           </p>
         </div>
 

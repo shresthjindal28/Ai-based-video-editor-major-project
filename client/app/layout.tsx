@@ -20,22 +20,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AutoCut AI — Autonomous AI Video Editor",
+  title: "AutoCut AI — Your next first cut starts here",
   description:
-    "Upload raw footage, describe your vision, and get a polished 4K video. Autonomous multi-modal video editing with frame-accurate pacing, Sony S-Log & Apple Log grading, and studio sound.",
+    "Spend less time on repetitive cuts and more time shaping the story. Turn your footage and brief into a first cut you can review, refine, and make your own.",
   keywords: [
     "AI video editor",
     "autonomous video editing",
     "AutoCut AI",
-    "multi-modal video AI",
+    "video editing workflow",
     "Sony S-Log grading",
     "Premiere Pro XML export",
     "DaVinci Resolve XML",
   ],
   authors: [{ name: "AutoCut AI Team" }],
   openGraph: {
-    title: "AutoCut AI — Autonomous AI Video Editor",
-    description: "Your footage. Your vision. Edited by AI in under 2 minutes.",
+    title: "AutoCut AI — Your next first cut starts here",
+    description: "Less time on the rough cut. More time for your creative decisions.",
     url: "https://autocut.ai",
     siteName: "AutoCut AI",
     locale: "en_US",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AutoCut AI — Autonomous AI Video Editor",
+    title: "AutoCut AI — Your next first cut starts here",
     description: "Upload raw footage, describe the edit, get a polished 4K video.",
   },
 };
@@ -56,9 +56,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-primary/40 selection:text-primary-foreground">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-foreground selection:bg-primary/40 selection:text-primary-foreground">
         {children}
       </body>
     </html>

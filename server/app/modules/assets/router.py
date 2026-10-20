@@ -8,6 +8,7 @@ from app.core.exceptions import DomainError
 from app.integrations.storage_client import storage
 from app.modules.assets import service
 from app.modules.auth.dependencies import DB, CurrentUser
+from app.modules.storage.models import FileDeletion
 from app.modules.uploads.schemas import AssetOut
 from app.modules.uploads.service import owned_asset
 
@@ -23,6 +24,8 @@ async def listing(
 
 @router.get("/{asset_id}", response_model=AssetOut)
 async def get(project_id: UUID, asset_id: UUID, db: DB, user: CurrentUser):
+    from app.modules.projects.service import require_project
+    await require_project(db, project_id, user.id)
     asset = await owned_asset(db, asset_id, user.id)
     if asset.project_id != project_id:
         raise DomainError("asset_not_found", "Asset not found", 404)
@@ -42,6 +45,6 @@ async def download(project_id: UUID, asset_id: UUID, request: Request, db: DB, u
 async def delete(project_id: UUID, asset_id: UUID, db: DB, user: CurrentUser):
     asset = await get(project_id, asset_id, db, user)
     await service.delete_owned_asset(db, asset.id, user.id)
+    db.add(FileDeletion(storage_key=asset.storage_key))
     await db.commit()
-    await storage.remove(asset.storage_key)
     return Response(status_code=204)

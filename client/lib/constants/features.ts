@@ -11,81 +11,105 @@ export interface FeatureItem {
 
 export const CAPABILITIES: FeatureItem[] = [
   {
-    id: "smart-cuts",
-    title: "Autonomous Jump-Cut & Pacing Engine",
-    category: "Editing Core",
-    description: "Detects false starts, stuttering, awkward pauses, and dead-air with millisecond precision while keeping natural speech rhythm intact.",
-    iconName: "Scissors",
-    badge: "99.2% Accuracy",
-    metric: "-85% editing time",
-    details: ["Filler word & silence stripping", "Dynamic jump-cut angle switching", "Natural conversational cadence matching"]
+    "id": "smart-cuts",
+    "title": "Tighter takes, better pacing",
+    "category": "Cutting",
+    "description": "Skip the repeated takes and long pauses. Get a cleaner starting point while keeping the moments that give your speaker character.",
+    "iconName": "Scissors",
+    "badge": "Keep the good takes",
+    "metric": "Find your rhythm",
+    "details": [
+      "Trim pauses and false starts",
+      "Keep intentional beats",
+      "Review the suggested cuts"
+    ]
   },
   {
-    id: "color-grading",
-    title: "Cinematic 3D LUTs & Tone Mapping",
-    category: "Visuals",
-    description: "Intelligently converts Sony S-Log, Canon C-Log, Apple ProRes Log, or standard rec.709 into balanced, film-grade cinematic looks.",
-    iconName: "Sliders",
-    badge: "HDR & Rec.709",
-    metric: "40+ Studio Profiles",
-    details: ["Automated exposure & skin tone preservation", "Kodak 2383 & modern film emulations", "Dynamic scene-to-scene contrast balancing"]
+    "id": "color-grading",
+    "title": "Bring the look together",
+    "category": "Color",
+    "description": "Give your first cut a consistent feel, from the opening shot to the last frame. Keep the final grade in your hands.",
+    "iconName": "Sliders",
+    "badge": "Set the mood",
+    "metric": "A consistent starting look",
+    "details": [
+      "Balance shots across the edit",
+      "Explore warm or clean looks",
+      "Refine the grade to your taste"
+    ]
   },
   {
-    id: "studio-audio",
-    title: "Studio Voice Isolation & Audio Ducking",
-    category: "Audio",
-    description: "Separates dialogue from wind and hum, automatically adds ambient riser effects, and ducks background music behind every speech phrase.",
-    iconName: "Volume2",
-    badge: "Broadcast Loudness",
-    metric: "-35dB noise removal",
-    details: ["Multi-band voice clarity enhancement", "Automated beat drops on cut points", "Dynamic sidechain music ducking"]
+    "id": "studio-audio",
+    "title": "Let the dialogue lead",
+    "category": "Sound",
+    "description": "Keep voices clear and music in its place, so your audience can follow the story without reaching for the volume.",
+    "iconName": "Volume2",
+    "badge": "Dialogue first",
+    "metric": "Less time riding levels",
+    "details": [
+      "Reduce distracting background noise",
+      "Lower music beneath speech",
+      "Review the mix before delivery"
+    ]
   },
   {
-    id: "kinetic-captions",
-    title: "Kinetic Captions & Subtitles",
-    category: "Typography",
-    description: "Generates frame-accurate, word-by-word highlighted captions with custom fonts, dynamic emoji accents, and viral kinetic motion styles.",
-    iconName: "Type",
-    badge: "50+ Languages",
-    metric: "Zero transcription lag",
-    details: ["Word-level timing synchronization", "Dynamic punch-in text highlights", "Exportable SRT, VTT, and burned-in tracks"]
+    "id": "kinetic-captions",
+    "title": "Captions that fit the cut",
+    "category": "Captions",
+    "description": "Make dialogue easy to follow with readable captions that match the pace and personality of your video.",
+    "iconName": "Type",
+    "badge": "Make every word count",
+    "metric": "Style it your way",
+    "details": [
+      "Review the transcript",
+      "Choose a caption style",
+      "Check timing and readability"
+    ]
   },
   {
-    id: "b-roll-insertion",
-    title: "Context-Aware B-Roll Insertion",
-    category: "Intelligence",
-    description: "Analyzes spoken topics and inserts relevant secondary footage or zooms right when listener attention needs a visual shift.",
-    iconName: "Eye",
-    badge: "Multi-Modal AI",
-    metric: "Contextual relevancy",
-    details: ["Shot composition analysis", "Seamless J-cut and L-cut audio overlap", "Automated smooth optical flow transitions"]
+    "id": "b-roll-insertion",
+    "title": "Put your B-roll to work",
+    "category": "Story",
+    "description": "Bring supporting shots into the conversation. Find places where a cutaway adds context, covers a trim, or gives a moment room to breathe.",
+    "iconName": "Eye",
+    "badge": "Use your own footage",
+    "metric": "Give the story context",
+    "details": [
+      "Match cutaways to the topic",
+      "Break up long talking-head sections",
+      "Review every placement"
+    ]
   },
   {
-    id: "smart-reframe",
-    title: "Multi-Aspect Smart Reframe",
-    category: "Delivery",
-    description: "One-click conversion between 16:9 cinematic horizontal, 9:16 TikTok/Reels vertical, and 1:1 square with intelligent speaker tracking.",
-    iconName: "Maximize2",
-    badge: "Active Subject Track",
-    metric: "Zero keyframing required",
-    details: ["Face & action centering", "Adaptive zoom & pan interpolation", "Maintains high resolution headroom"]
+    "id": "smart-reframe",
+    "title": "One story, more screens",
+    "category": "Delivery",
+    "description": "Adapt your edit for a full-length video, a vertical clip, or a square post while keeping the important action in view.",
+    "iconName": "Maximize2",
+    "badge": "Made for your channels",
+    "metric": "Frame for the destination",
+    "details": [
+      "Plan horizontal and vertical versions",
+      "Keep the subject in focus",
+      "Review each crop before export"
+    ]
   }
 ];
 
 export const AI_INTELLIGENCE_HIGHLIGHTS = [
   {
-    title: "Multi-Modal Vision & Speech Grounding",
-    description: "AutoCut AI does not blindly guess cut points. It understands the emotional curve of dialogue, gestures, and audio dynamics simultaneously.",
-    metric: "120 FPS scene analysis",
+    "title": "Keep the moments that matter",
+    "description": "A pause can build tension. A glance can carry the scene. Review the suggestions and keep the beats that make the edit yours.",
+    "metric": "Story comes first"
   },
   {
-    title: "Explainable Cut Decision Lists",
-    description: "Every cut, zoom, and audio duck comes with rationale metadata. You can inspect why a clip was trimmed or tweak the decision in one click.",
-    metric: "100% NLE Timeline Compatible",
+    "title": "A first cut you can question",
+    "description": "See the purpose behind a trim or cutaway, then decide whether it serves your brief. Your judgment shapes the finished film.",
+    "metric": "You call the cut"
   },
   {
-    title: "Native Premiere & Resolve Roundtrip",
-    description: "Not locked into our web preview. Download Final Cut Pro XML or DaVinci Resolve timelines to finish your grade in your favorite professional suite.",
-    metric: "XML / FCPXML / EDL",
-  },
+    "title": "Make room for the finishing pass",
+    "description": "Start with the structure, then focus on the details: shot choices, caption timing, sound, and the final look.",
+    "metric": "Ready for your review"
+  }
 ];

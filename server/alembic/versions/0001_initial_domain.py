@@ -1,13 +1,6 @@
-"""Create the initial AutoCut application schema.
+"""Initial PostgreSQL domain schema (frozen DDL)."""
 
-Revision ID: 0001_initial_domain
-Revises:
-Create Date: 2026-10-20
-"""
-
-import app.db.models  # noqa: F401
 from alembic import op
-from app.db.base import Base
 
 revision = "0001_initial_domain"
 down_revision = None
@@ -16,8 +9,67 @@ depends_on = None
 
 
 def upgrade() -> None:
-    Base.metadata.create_all(bind=op.get_bind(), checkfirst=True)
+    op.execute('CREATE TABLE entitlements (\n\tcode VARCHAR(80) NOT NULL, \n\tmax_projects INTEGER NOT NULL, \n\tmax_storage_bytes BIGINT NOT NULL, \n\tmax_upload_bytes BIGINT NOT NULL, \n\tmax_render_seconds INTEGER NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_entitlements PRIMARY KEY (id), \n\tCONSTRAINT uq_entitlements_code UNIQUE (code)\n)')
+    op.execute('CREATE TABLE users (\n\texternal_subject VARCHAR(255) NOT NULL, \n\temail VARCHAR(320), \n\tdisplay_name VARCHAR(255), \n\tstatus VARCHAR(20) NOT NULL, \n\tupdated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_users PRIMARY KEY (id), \n\tCONSTRAINT uq_users_external_subject UNIQUE (external_subject)\n)')
+    op.execute('CREATE TABLE idempotency_records (\n\tuser_id UUID NOT NULL, \n\tscope VARCHAR(200) NOT NULL, \n\tkey VARCHAR(200) NOT NULL, \n\tfingerprint VARCHAR(64) NOT NULL, \n\tstatus VARCHAR(20) NOT NULL, \n\tresult JSONB, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_idempotency_records PRIMARY KEY (id), \n\tCONSTRAINT uq_idempotency_records_user_id UNIQUE (user_id, scope, key), \n\tCONSTRAINT fk_idempotency_records_user_id_users FOREIGN KEY(user_id) REFERENCES users (id)\n)')
+    op.execute('CREATE TABLE projects (\n\towner_id UUID NOT NULL, \n\tname VARCHAR(200) NOT NULL, \n\tdescription TEXT, \n\tstatus VARCHAR(20) NOT NULL, \n\tdefault_aspect_ratio VARCHAR(10) NOT NULL, \n\tdefault_resolution VARCHAR(20) NOT NULL, \n\tdefault_frame_rate INTEGER NOT NULL, \n\trevision INTEGER NOT NULL, \n\tupdated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tdeleted_at TIMESTAMP WITH TIME ZONE, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_projects PRIMARY KEY (id), \n\tCONSTRAINT fk_projects_owner_id_users FOREIGN KEY(owner_id) REFERENCES users (id)\n)')
+    op.execute('CREATE INDEX ix_project_owner_created ON projects (owner_id, created_at, id)')
+    op.execute('CREATE INDEX ix_projects_owner_id ON projects (owner_id)')
+    op.execute('CREATE TABLE usage_ledger (\n\tuser_id UUID NOT NULL, \n\tperiod VARCHAR(7) NOT NULL, \n\tstorage_bytes BIGINT NOT NULL, \n\trendered_seconds BIGINT NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_usage_ledger PRIMARY KEY (id), \n\tCONSTRAINT uq_usage_ledger_user_id UNIQUE (user_id, period), \n\tCONSTRAINT fk_usage_ledger_user_id_users FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE\n)')
+    op.execute('CREATE INDEX ix_usage_ledger_user_id ON usage_ledger (user_id)')
+    op.execute('CREATE TABLE edit_requests (\n\tproject_id UUID NOT NULL, \n\tuser_id UUID NOT NULL, \n\trequest_type VARCHAR(30) NOT NULL, \n\tinstructions JSONB NOT NULL, \n\tstatus VARCHAR(20) NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_edit_requests PRIMARY KEY (id), \n\tCONSTRAINT fk_edit_requests_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id), \n\tCONSTRAINT fk_edit_requests_user_id_users FOREIGN KEY(user_id) REFERENCES users (id)\n)')
+    op.execute('CREATE INDEX ix_edit_requests_project_id ON edit_requests (project_id)')
+    op.execute('CREATE TABLE edit_versions (\n\tproject_id UUID NOT NULL, \n\tversion_number INTEGER NOT NULL, \n\tparent_version_id UUID, \n\ttimeline JSONB NOT NULL, \n\tschema_version VARCHAR(10) NOT NULL, \n\tvalidation_status VARCHAR(20) NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_edit_versions PRIMARY KEY (id), \n\tCONSTRAINT uq_edit_versions_project_id UNIQUE (project_id, version_number), \n\tCONSTRAINT fk_edit_versions_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id), \n\tCONSTRAINT fk_edit_versions_parent_version_id_edit_versions FOREIGN KEY(parent_version_id) REFERENCES edit_versions (id)\n)')
+    op.execute('CREATE INDEX ix_edit_versions_project_id ON edit_versions (project_id)')
+    op.execute('CREATE TABLE media_assets (\n\tproject_id UUID NOT NULL, \n\towner_id UUID NOT NULL, \n\toriginal_filename VARCHAR(255) NOT NULL, \n\tstorage_key VARCHAR(500) NOT NULL, \n\tmime_type VARCHAR(100) NOT NULL, \n\tfile_size BIGINT NOT NULL, \n\tchecksum VARCHAR(64) NOT NULL, \n\tmedia_type VARCHAR(20) NOT NULL, \n\tduration FLOAT NOT NULL, \n\twidth INTEGER, \n\theight INTEGER, \n\tfps_num INTEGER NOT NULL, \n\tfps_den INTEGER NOT NULL, \n\tvideo_codec VARCHAR(50), \n\taudio_codec VARCHAR(50), \n\thas_audio BOOLEAN NOT NULL, \n\tprocessing_status VARCHAR(20) NOT NULL, \n\tdeleted_at TIMESTAMP WITH TIME ZONE, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_media_assets PRIMARY KEY (id), \n\tCONSTRAINT ck_media_assets_asset_positive_size CHECK (file_size > 0), \n\tCONSTRAINT ck_media_assets_asset_positive_duration CHECK (duration > 0), \n\tCONSTRAINT fk_media_assets_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE RESTRICT, \n\tCONSTRAINT fk_media_assets_owner_id_users FOREIGN KEY(owner_id) REFERENCES users (id) ON DELETE RESTRICT, \n\tCONSTRAINT uq_media_assets_storage_key UNIQUE (storage_key)\n)')
+    op.execute('CREATE INDEX ix_asset_project_owner ON media_assets (project_id, owner_id, created_at, id)')
+    op.execute('CREATE INDEX ix_media_assets_checksum ON media_assets (checksum)')
+    op.execute('CREATE INDEX ix_media_assets_owner_id ON media_assets (owner_id)')
+    op.execute('CREATE INDEX ix_media_assets_project_id ON media_assets (project_id)')
+    op.execute('CREATE TABLE usage_records (\n\tuser_id UUID NOT NULL, \n\tproject_id UUID NOT NULL, \n\tkind VARCHAR(30) NOT NULL, \n\tamount BIGINT NOT NULL, \n\treference VARCHAR(100) NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_usage_records PRIMARY KEY (id), \n\tCONSTRAINT fk_usage_records_user_id_users FOREIGN KEY(user_id) REFERENCES users (id), \n\tCONSTRAINT fk_usage_records_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id), \n\tCONSTRAINT uq_usage_records_reference UNIQUE (reference)\n)')
+    op.execute('CREATE INDEX ix_usage_records_user_id ON usage_records (user_id)')
+    op.execute('CREATE TABLE asset_analyses (\n\tasset_id UUID NOT NULL, \n\ttechnical JSONB NOT NULL, \n\tthumbnail_key VARCHAR(500), \n\tproxy_key VARCHAR(500), \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_asset_analyses PRIMARY KEY (id), \n\tCONSTRAINT uq_asset_analyses_asset_id UNIQUE (asset_id), \n\tCONSTRAINT fk_asset_analyses_asset_id_media_assets FOREIGN KEY(asset_id) REFERENCES media_assets (id)\n)')
+    op.execute('CREATE TABLE audio_tracks (\n\tproject_id UUID NOT NULL, \n\tasset_id UUID NOT NULL, \n\tversion_id UUID, \n\ttrack_number INTEGER NOT NULL, \n\tgain DOUBLE PRECISION NOT NULL, \n\tfade_in_frames INTEGER NOT NULL, \n\tfade_out_frames INTEGER NOT NULL, \n\tsettings JSON NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_audio_tracks PRIMARY KEY (id), \n\tCONSTRAINT ck_audio_tracks_audio_gain_range CHECK (gain >= 0 AND gain <= 4), \n\tCONSTRAINT ck_audio_tracks_audio_fades_nonnegative CHECK (fade_in_frames >= 0 AND fade_out_frames >= 0), \n\tCONSTRAINT fk_audio_tracks_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, \n\tCONSTRAINT fk_audio_tracks_asset_id_media_assets FOREIGN KEY(asset_id) REFERENCES media_assets (id) ON DELETE RESTRICT, \n\tCONSTRAINT fk_audio_tracks_version_id_edit_versions FOREIGN KEY(version_id) REFERENCES edit_versions (id) ON DELETE CASCADE\n)')
+    op.execute('CREATE INDEX ix_audio_tracks_project_id ON audio_tracks (project_id)')
+    op.execute('CREATE TABLE edit_jobs (\n\tproject_id UUID NOT NULL, \n\tversion_id UUID, \n\tasset_id UUID, \n\tjob_type VARCHAR(30) NOT NULL, \n\tstatus VARCHAR(20) NOT NULL, \n\tprogress INTEGER NOT NULL, \n\tcelery_task_id VARCHAR(100), \n\tretry_count INTEGER NOT NULL, \n\terror_code VARCHAR(100), \n\terror_message TEXT, \n\tstarted_at TIMESTAMP WITH TIME ZONE, \n\tcompleted_at TIMESTAMP WITH TIME ZONE, \n\theartbeat_at TIMESTAMP WITH TIME ZONE, \n\tfence INTEGER NOT NULL, \n\tevent_sequence INTEGER NOT NULL, \n\tparameters JSONB NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_edit_jobs PRIMARY KEY (id), \n\tCONSTRAINT fk_edit_jobs_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id), \n\tCONSTRAINT fk_edit_jobs_version_id_edit_versions FOREIGN KEY(version_id) REFERENCES edit_versions (id), \n\tCONSTRAINT fk_edit_jobs_asset_id_media_assets FOREIGN KEY(asset_id) REFERENCES media_assets (id)\n)')
+    op.execute('CREATE INDEX ix_edit_jobs_project_id ON edit_jobs (project_id)')
+    op.execute('CREATE INDEX ix_edit_jobs_status ON edit_jobs (status)')
+    op.execute("CREATE UNIQUE INDEX uq_active_version_render ON edit_jobs (version_id) WHERE status IN ('pending','queued','processing','cancelling') AND version_id IS NOT NULL")
+    op.execute('CREATE TABLE scenes (\n\tasset_id UUID NOT NULL, \n\tstart_frame INTEGER NOT NULL, \n\tend_frame INTEGER NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_scenes PRIMARY KEY (id), \n\tCONSTRAINT ck_scenes_scene_range CHECK (end_frame > start_frame AND start_frame >= 0), \n\tCONSTRAINT fk_scenes_asset_id_media_assets FOREIGN KEY(asset_id) REFERENCES media_assets (id)\n)')
+    op.execute('CREATE INDEX ix_scenes_asset_id ON scenes (asset_id)')
+    op.execute('CREATE TABLE timeline_items (\n\tversion_id UUID NOT NULL, \n\tasset_id UUID NOT NULL, \n\ttrack INTEGER NOT NULL, \n\tstart_frame INTEGER NOT NULL, \n\tduration_frames INTEGER NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_timeline_items PRIMARY KEY (id), \n\tCONSTRAINT fk_timeline_items_version_id_edit_versions FOREIGN KEY(version_id) REFERENCES edit_versions (id), \n\tCONSTRAINT fk_timeline_items_asset_id_media_assets FOREIGN KEY(asset_id) REFERENCES media_assets (id)\n)')
+    op.execute('CREATE INDEX ix_timeline_items_asset_id ON timeline_items (asset_id)')
+    op.execute('CREATE INDEX ix_timeline_items_version_id ON timeline_items (version_id)')
+    op.execute('CREATE TABLE upload_sessions (\n\tproject_id UUID NOT NULL, \n\tuser_id UUID NOT NULL, \n\tfilename VARCHAR(255) NOT NULL, \n\ttemp_key VARCHAR(500) NOT NULL, \n\texpected_size BIGINT NOT NULL, \n\t"offset" BIGINT NOT NULL, \n\tstatus VARCHAR(20) NOT NULL, \n\texpires_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tasset_id UUID, \n\tchecksum VARCHAR(64), \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_upload_sessions PRIMARY KEY (id), \n\tCONSTRAINT fk_upload_sessions_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id), \n\tCONSTRAINT fk_upload_sessions_user_id_users FOREIGN KEY(user_id) REFERENCES users (id), \n\tCONSTRAINT uq_upload_sessions_temp_key UNIQUE (temp_key), \n\tCONSTRAINT fk_upload_sessions_asset_id_media_assets FOREIGN KEY(asset_id) REFERENCES media_assets (id)\n)')
+    op.execute('CREATE INDEX ix_upload_sessions_project_id ON upload_sessions (project_id)')
+    op.execute('CREATE TABLE job_events (\n\tjob_id UUID NOT NULL, \n\tsequence INTEGER NOT NULL, \n\tevent_type VARCHAR(40) NOT NULL, \n\tdata JSONB NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_job_events PRIMARY KEY (id), \n\tCONSTRAINT uq_job_events_job_id UNIQUE (job_id, sequence), \n\tCONSTRAINT fk_job_events_job_id_edit_jobs FOREIGN KEY(job_id) REFERENCES edit_jobs (id)\n)')
+    op.execute('CREATE INDEX ix_job_events_job_id ON job_events (job_id)')
+    op.execute('CREATE TABLE notifications (\n\tuser_id UUID NOT NULL, \n\tjob_id UUID NOT NULL, \n\tkind VARCHAR(30) NOT NULL, \n\tmessage VARCHAR(500) NOT NULL, \n\tread_at TIMESTAMP WITH TIME ZONE, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_notifications PRIMARY KEY (id), \n\tCONSTRAINT uq_notifications_job_id UNIQUE (job_id, kind), \n\tCONSTRAINT fk_notifications_user_id_users FOREIGN KEY(user_id) REFERENCES users (id), \n\tCONSTRAINT fk_notifications_job_id_edit_jobs FOREIGN KEY(job_id) REFERENCES edit_jobs (id)\n)')
+    op.execute('CREATE INDEX ix_notifications_user_id ON notifications (user_id)')
+    op.execute('CREATE TABLE outbox (\n\tjob_id UUID NOT NULL, \n\tdelivered_at TIMESTAMP WITH TIME ZONE, \n\tavailable_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tattempts INTEGER NOT NULL, \n\tlast_error VARCHAR(100), \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_outbox PRIMARY KEY (id), \n\tCONSTRAINT fk_outbox_job_id_edit_jobs FOREIGN KEY(job_id) REFERENCES edit_jobs (id)\n)')
+    op.execute('CREATE INDEX ix_outbox_dispatch ON outbox (delivered_at, available_at, created_at)')
+    op.execute('CREATE INDEX ix_outbox_job_id ON outbox (job_id)')
+    op.execute('CREATE TABLE render_outputs (\n\tproject_id UUID NOT NULL, \n\tversion_id UUID NOT NULL, \n\tjob_id UUID NOT NULL, \n\tstorage_key VARCHAR(500) NOT NULL, \n\tformat VARCHAR(20) NOT NULL, \n\twidth INTEGER NOT NULL, \n\theight INTEGER NOT NULL, \n\tfps_num INTEGER NOT NULL, \n\tfps_den INTEGER NOT NULL, \n\tduration FLOAT NOT NULL, \n\tfile_size BIGINT NOT NULL, \n\tchecksum VARCHAR(64) NOT NULL, \n\tqc_status VARCHAR(20) NOT NULL, \n\tid UUID NOT NULL, \n\tcreated_at TIMESTAMP WITH TIME ZONE NOT NULL, \n\tCONSTRAINT pk_render_outputs PRIMARY KEY (id), \n\tCONSTRAINT fk_render_outputs_project_id_projects FOREIGN KEY(project_id) REFERENCES projects (id), \n\tCONSTRAINT fk_render_outputs_version_id_edit_versions FOREIGN KEY(version_id) REFERENCES edit_versions (id), \n\tCONSTRAINT uq_render_outputs_job_id UNIQUE (job_id), \n\tCONSTRAINT fk_render_outputs_job_id_edit_jobs FOREIGN KEY(job_id) REFERENCES edit_jobs (id), \n\tCONSTRAINT uq_render_outputs_storage_key UNIQUE (storage_key)\n)')
+    op.execute('CREATE INDEX ix_render_outputs_project_id ON render_outputs (project_id)')
 
 
 def downgrade() -> None:
-    Base.metadata.drop_all(bind=op.get_bind(), checkfirst=True)
+    op.drop_table('render_outputs')
+    op.drop_table('outbox')
+    op.drop_table('notifications')
+    op.drop_table('job_events')
+    op.drop_table('upload_sessions')
+    op.drop_table('timeline_items')
+    op.drop_table('scenes')
+    op.drop_table('edit_jobs')
+    op.drop_table('audio_tracks')
+    op.drop_table('asset_analyses')
+    op.drop_table('usage_records')
+    op.drop_table('media_assets')
+    op.drop_table('edit_versions')
+    op.drop_table('edit_requests')
+    op.drop_table('usage_ledger')
+    op.drop_table('projects')
+    op.drop_table('idempotency_records')
+    op.drop_table('users')
+    op.drop_table('entitlements')

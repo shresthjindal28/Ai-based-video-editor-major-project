@@ -1,18 +1,21 @@
 import asyncio
 import logging
 import random
+import time
 from datetime import timedelta
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.core.config import get_settings
+from app.core.metrics import JOB_TIME, QUEUE_DEPTH
 from app.db.base import now
 from app.db.session import Session
 from app.modules.assets.processing import process_asset
 from app.modules.jobs.models import EditJob, Outbox
 from app.modules.jobs.service import append_event
 from app.modules.rendering.service import render_job
+from app.modules.storage.service import cleanup
 from app.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -34,12 +37,19 @@ def execute_job(self, job_id: str) -> None:
     run_async(_execute(UUID(job_id)))
 
 
+@celery_app.task(name="app.workers.tasks.cleanup_files", ignore_result=True)
+def cleanup_files() -> int:
+    return run_async(cleanup())
+
+
 async def _execute(job_id: UUID) -> None:
     async with Session() as session:
         job = await session.get(EditJob, job_id)
         if job is None:
             return
         asset_id, job_type = job.asset_id, job.job_type
+    started = time.monotonic()
+    logger.info("worker attempt started", extra={"job_id": str(job_id), "operation": job_type})
     try:
         if job_type == "asset_processing" and asset_id:
             await process_asset(asset_id, job_id)
@@ -50,6 +60,8 @@ async def _execute(job_id: UUID) -> None:
         # exception must never overwrite a newer worker's result.
         logger.exception("background attempt failed", extra={"job_id": str(job_id)})
         raise
+    finally:
+        JOB_TIME.labels(kind=job_type).observe(time.monotonic()-started)
 
 
 @celery_app.task(name="app.workers.tasks.dispatch_outbox", ignore_result=True)
@@ -77,7 +89,7 @@ async def _dispatch() -> int:
                 row.delivered_at = now()
                 continue
             try:
-                execute_job.apply_async(args=[str(job.id)], task_id=str(job.id))
+                execute_job.apply_async(args=[str(job.id)], task_id=str(job.id), queue=celery_app.conf.task_default_queue)
                 row.delivered_at = now()
                 row.attempts += 1
                 job.status = "queued" if job.status == "pending" else job.status
@@ -102,6 +114,7 @@ async def _dispatch() -> int:
                         seconds=min(300, 2 ** min(row.attempts, 8)) + random.randint(0, 5)
                     )
         await session.commit()
+        QUEUE_DEPTH.set(await session.scalar(select(func.count(EditJob.id)).where(EditJob.status.in_(["pending", "queued"]))) or 0)
     return dispatched
 
 
@@ -157,6 +170,13 @@ async def _recover() -> int:
             ).all()
         )
         for job in queued:
+            if job.retry_count >= get_settings().max_job_retries:
+                job.status, job.error_code, job.completed_at = "failed", "queue_timeout", now()
+                job.error_message = "No worker claimed this job before its delivery limit"
+                await append_event(session, job, "failed", {"error_code": job.error_code})
+                recovered += 1
+                continue
+            job.retry_count += 1
             job.status, job.heartbeat_at = "pending", None
             job.fence += 1
             session.add(Outbox(job_id=job.id))

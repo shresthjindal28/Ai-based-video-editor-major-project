@@ -24,6 +24,7 @@ from app.modules.notifications.models import Notification
 from app.modules.projects.models import Project
 from app.modules.rendering.mlt_engine import render as mlt_render
 from app.modules.rendering.quality_control import verify_render
+from app.modules.storage.service import keep, reserve
 
 
 def checksum(path) -> str:
@@ -45,6 +46,7 @@ async def render_job(job_id: UUID) -> None:
     temp_path = final_path.with_suffix(".partial.mp4")
     completed = False
     try:
+        await reserve(final_key)
         async with lease(job_id, fence) as cancelled:
             async with Session() as session:
                 project = await session.get(Project, project_id)
@@ -81,6 +83,7 @@ async def render_job(job_id: UUID) -> None:
                     job_id=job_id, storage_key=final_key, format="mp4", width=width, height=height,
                     fps_num=output.fps_num, fps_den=output.fps_den, duration=metadata["duration"],
                     file_size=size, checksum=digest, qc_status="passed"))
+                await keep(session, [final_key])
                 job.status, job.progress, job.completed_at, job.heartbeat_at = "completed", 100, now(), now()
                 await append_event(session, job, "completed", {"status": "completed", "progress": 100})
                 session.add(Notification(user_id=owner_id, job_id=job_id, kind="render_completed", message="Your video export is ready"))

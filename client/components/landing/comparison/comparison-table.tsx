@@ -12,10 +12,10 @@ export function ComparisonTable() {
               Capability
             </th>
             <th className="p-4 sm:p-5 text-xs font-mono uppercase tracking-wider text-stone-400 w-1/4">
-              Manual Editing
+              From scratch
             </th>
             <th className="p-4 sm:p-5 text-xs font-mono uppercase tracking-wider text-stone-400 w-1/4">
-              Basic AI Generators
+              Template workflow
             </th>
             <th className="p-4 sm:p-5 text-xs font-mono uppercase tracking-wider text-primary bg-primary/8 border-x border-primary/20 w-1/4">
               <div className="flex items-center gap-1.5 font-bold">

@@ -9,7 +9,7 @@ from app.core.exceptions import DomainError
 from app.modules.assets.models import MediaAsset
 from app.modules.editor.schemas import TimelinePlan
 
-EFFECT_RANGES = {
+EFFECT_RANGES: dict[str, dict[str, tuple[float, float]]] = {
     "brightness": {"value": (-1.0, 1.0)},
     "contrast": {"value": (0.0, 4.0)},
     "saturation": {"value": (0.0, 3.0)},
@@ -87,7 +87,7 @@ async def validate_plan(
                 )
             for name, (low, high) in allowed.items():
                 value = effect.parameters[name]
-                if not isinstance(value, (int, float)) or not low <= float(value) <= high:
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not low <= float(value) <= high:
                     raise DomainError(
                         "effect_parameters_invalid",
                         f"{effect.id}.{name} must be between {low} and {high}",

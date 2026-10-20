@@ -18,6 +18,8 @@ async def entitlements(db: DB, user: CurrentUser):
             "storage_bytes": settings.max_storage_bytes,
             "upload_bytes": settings.max_upload_size_mb * 1024**2,
             "render_seconds": settings.max_project_duration_seconds,
+            "render_seconds_per_month": settings.max_render_seconds_per_month,
+            "concurrent_renders": settings.max_concurrent_renders,
         },
         "usage": usage,
     }

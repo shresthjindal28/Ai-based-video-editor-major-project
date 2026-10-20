@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from contextvars import ContextVar
 from datetime import UTC, datetime
 
@@ -15,6 +16,9 @@ class JSONFormatter(logging.Formatter):
                 "logger": record.name,
                 "message": record.getMessage(),
                 "request_id": request_id.get(),
+                "correlation_id": request_id.get(),
+                **({"exception_type": type(record.exc_info[1]).__name__,
+                    "traceback": traceback.format_tb(record.exc_info[2])} if record.exc_info else {}),
                 **{
                     k: getattr(record, k)
                     for k in (

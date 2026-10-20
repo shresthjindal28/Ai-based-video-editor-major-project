@@ -9,52 +9,52 @@ export interface WorkflowStep {
 
 export const HOW_IT_WORKS_STEPS: WorkflowStep[] = [
   {
-    number: "01",
-    title: "Upload Raw Footage",
-    description: "Drop in your multi-cam takes, 4K camera files, drone clips, or phone recordings. We support Sony S-Log, Apple Log, MP4, and ProRes.",
-    badge: "Direct Cloud Ingest",
-    iconName: "UploadCloud",
-    detail: "Up to 8K resolution accepted with rapid proxy generation"
+    "number": "01",
+    "title": "Bring your footage",
+    "description": "Add the interview, supporting shots, and music you want to work with. Keep everything for the story together.",
+    "badge": "Start with your selects",
+    "iconName": "UploadCloud",
+    "detail": "Camera clips, phone recordings, and B-roll"
   },
   {
-    number: "02",
-    title: "Describe Your Vision",
-    description: "Type your editing goal in plain English: target duration, pacing style, musical mood, color grading preference, and hook requirements.",
-    badge: "Natural Language Prompt",
-    iconName: "MessageSquareCode",
-    detail: "Presets available for Reels, YouTube essays, and promos"
+    "number": "02",
+    "title": "Set the brief",
+    "description": "Tell us who the video is for, how long it should run, and the feeling you want to leave behind.",
+    "badge": "Your creative direction",
+    "iconName": "MessageSquareCode",
+    "detail": "Try a product reel, interview, or social cutdown"
   },
   {
-    number: "03",
-    title: "AI Understands Context",
-    description: "Multi-modal vision and acoustic models transcribe speech, map facial focus, detect awkward pauses, and identify emotional highlights.",
-    badge: "Multi-Modal Vision & Audio",
-    iconName: "BrainCircuit",
-    detail: "Frame-by-frame transcript & audio spectral energy analysis"
+    "number": "03",
+    "title": "Find the story",
+    "description": "Pick out the strongest lines and useful supporting shots before getting lost in the details.",
+    "badge": "Make the moments count",
+    "iconName": "BrainCircuit",
+    "detail": "Build around the message you want to land"
   },
   {
-    number: "04",
-    title: "Grounded Timeline Planning",
-    description: "The AI Director builds a structured Decision List (EDL): synchronizing A-roll dialogue, weaving B-roll cutaways, and timing cuts to beat drops.",
-    badge: "Explainable Edit Graph",
-    iconName: "GitBranch",
-    detail: "Full visibility into every transition, zoom, and ducking decision"
+    "number": "04",
+    "title": "Shape the first cut",
+    "description": "Get a starting sequence with tighter dialogue and cutaways, ready for your judgment.",
+    "badge": "From footage to sequence",
+    "iconName": "GitBranch",
+    "detail": "Keep, change, or rethink the suggested choices"
   },
   {
-    number: "05",
-    title: "Hardware-Accelerated Render",
-    description: "Our dedicated GPU rendering pipeline applies 3D LUTs, denoises audio, adds kinetic subtitles, and executes cuts in native resolution.",
-    badge: "GPU Render Engine",
-    iconName: "Cpu",
-    detail: "10x faster than real-time rendering on high-throughput clusters"
+    "number": "05",
+    "title": "Refine the finish",
+    "description": "Review the pacing, look, captions, and sound together. Give each pass a clear creative goal.",
+    "badge": "Make it yours",
+    "iconName": "Cpu",
+    "detail": "Polish the details that define your style"
   },
   {
-    number: "06",
-    title: "Review, Refine & Export",
-    description: "Preview in the web player, adjust cuts or caption styles with prompt tweaks, or export an XML/FCPXML file to DaVinci Resolve & Premiere Pro.",
-    badge: "Zero Vendor Lock-in",
-    iconName: "CheckCircle2",
-    detail: "Download ready-to-post MP4 or raw NLE project files"
+    "number": "06",
+    "title": "Review for delivery",
+    "description": "Watch the cut from start to finish and check the framing for every channel before sharing.",
+    "badge": "Your final approval",
+    "iconName": "CheckCircle2",
+    "detail": "Check captions, sound, and the last frame"
   }
 ];
 
@@ -68,65 +68,81 @@ export interface PipelineNode {
 
 export const ARCHITECTURE_PIPELINE: PipelineNode[] = [
   {
-    id: "ingest",
-    label: "Ingest & Proxy",
-    sublabel: "Ultra-fast chunked upload & proxy encoding",
-    tech: "FFmpeg Hardware Proxies",
-    color: "from-blue-500/20 to-blue-600/10 border-blue-500/30"
+    "id": "ingest",
+    "label": "Gather your media",
+    "sublabel": "Start with the clips and music for this edit.",
+    "tech": "Your footage",
+    "color": "from-amber-500/20 to-rose-500/10 border-amber-500/30"
   },
   {
-    id: "analysis",
-    label: "Sensory Analysis",
-    sublabel: "Speech-to-text, facial tracking & beat detection",
-    tech: "Whisper + Vision AI + Librosa",
-    color: "from-violet-500/20 to-violet-600/10 border-violet-500/30"
+    "id": "analysis",
+    "label": "Find the highlights",
+    "sublabel": "Choose the lines and shots that carry the story.",
+    "tech": "Your selects",
+    "color": "from-amber-500/20 to-rose-500/10 border-amber-500/30"
   },
   {
-    id: "director",
-    label: "AI Video Director",
-    sublabel: "Synthesizes narrative arc & cut decision list",
-    tech: "Semantic Timeline Reasoning",
-    color: "from-fuchsia-500/20 to-fuchsia-600/10 border-fuchsia-500/30"
+    "id": "director",
+    "label": "Build the sequence",
+    "sublabel": "Turn the brief into a first cut worth refining.",
+    "tech": "Your first cut",
+    "color": "from-amber-500/20 to-rose-500/10 border-amber-500/30"
   },
   {
-    id: "render",
-    label: "High-Throughput Render",
-    sublabel: "GPU compositing, 3D LUTs & kinetic captions",
-    tech: "MLT Framework + NVENC",
-    color: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30"
+    "id": "render",
+    "label": "Polish the details",
+    "sublabel": "Bring pacing, sound, captions, and color together.",
+    "tech": "Your finishing pass",
+    "color": "from-amber-500/20 to-rose-500/10 border-amber-500/30"
   },
   {
-    id: "delivery",
-    label: "Master Delivery",
-    sublabel: "Instant 4K master + Resolve / Premiere XML",
-    tech: "FCPXML / ProRes / H.265",
-    color: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30"
+    "id": "delivery",
+    "label": "Review and share",
+    "sublabel": "Check the finished edit for its destination.",
+    "tech": "Your final say",
+    "color": "from-amber-500/20 to-rose-500/10 border-amber-500/30"
   }
 ];
 
 export const USE_CASES = [
   {
-    title: "Solo Creators & YouTubers",
-    description: "Turn 2 hours of raw vlog or tutorial takes into an engaging 12-minute video with tight pacing, zero dead air, and automated zooms.",
-    badge: "Save 15+ hrs/week",
-    tags: ["Longform to Short", "Jump-Cut Removal", "Kinetic Subtitles"]
+    "title": "YouTube editors",
+    "description": "Get through the first assembly of interviews, tutorials, and talking-head videos so you can focus on the moments viewers stay for.",
+    "badge": "Build a stronger first cut",
+    "tags": [
+      "Talking heads",
+      "B-roll",
+      "Pacing"
+    ]
   },
   {
-    title: "Growth & Social Marketing Teams",
-    description: "Transform webinar recordings and customer interviews into dozens of punchy TikToks, Shorts, and LinkedIn video clips in minutes.",
-    badge: "10x Output Velocity",
-    tags: ["9:16 Auto-Reframe", "Hook Optimization", "Viral Captions"]
+    "title": "Social video teams",
+    "description": "Turn one shoot into focused edits for different channels. Give every cutdown a clear hook and a reason to keep watching.",
+    "badge": "Make the most of every shoot",
+    "tags": [
+      "Reels",
+      "Shorts",
+      "Campaign cutdowns"
+    ]
   },
   {
-    title: "Travel & Adventure Filmmakers",
-    description: "Auto-sync high-framerate drone and gimbal footage to musical beat drops, applying filmic LUTs while preserving original dynamic range.",
-    badge: "Cinematic Aesthetic",
-    tags: ["Beat-Matched Cuts", "Log Color Grade", "Speed Ramps"]
+    "title": "Brand and freelance editors",
+    "description": "Translate the client brief into a starting sequence, then spend your attention on the choices that make the work feel considered.",
+    "badge": "Leave room for your craft",
+    "tags": [
+      "Product stories",
+      "Client revisions",
+      "Brand style"
+    ]
   },
   {
-    title: "Podcast & Talk Show Studios",
-    description: "Effortlessly edit multi-camera interviews. AutoCut AI switches between camera angles based on active speaker detection and facial cues.",
-    badge: "Multi-Camera Sync",
-    tags: ["Speaker Tracking", "Noise Reduction", "Auto Sound Ducking"]
+    "title": "Podcast and interview editors",
+    "description": "Bring the strongest parts of a conversation forward, clean up the distractions, and keep the speakers sounding like themselves.",
+    "badge": "Keep the conversation natural",
+    "tags": [
+      "Interviews",
+      "Dialogue cleanup",
+      "Highlight clips"
+    ]
   }
 ];

@@ -13,10 +13,10 @@ from app.modules.rendering.schemas import RenderRequest
 
 router = APIRouter(tags=["rendering"])
 PRESETS = [
-    {"id": "preview", "width": 640, "height": 360, "fps": 24, "quality": "low"},
-    {"id": "1080p_landscape", "width": 1920, "height": 1080, "fps": 30, "quality": "high"},
-    {"id": "1080p_portrait", "width": 1080, "height": 1920, "fps": 30, "quality": "high"},
-    {"id": "1080p_square", "width": 1080, "height": 1080, "fps": 30, "quality": "high"},
+    {"id": "preview", "width": 640, "height": 360, "fps_mode": "timeline", "quality": "low", "aspect_mode":"preserve timeline aspect"},
+    {"id": "1080p_landscape", "width": 1920, "height": 1080, "fps_mode": "timeline", "quality": "high"},
+    {"id": "1080p_portrait", "width": 1080, "height": 1920, "fps_mode": "timeline", "quality": "high"},
+    {"id": "1080p_square", "width": 1080, "height": 1080, "fps_mode": "timeline", "quality": "high"},
 ]
 
 
