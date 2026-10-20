@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import signal
 from fractions import Fraction
 from pathlib import Path
 
@@ -14,18 +16,37 @@ logger = logging.getLogger(__name__)
 
 
 async def run_media_command(
-    args: list[str], timeout: int | None = None
+    args: list[str], timeout: int | None = None, cancelled: asyncio.Event | None = None
 ) -> tuple[int, bytes, bytes]:
+    process = None
     try:
         process = await asyncio.create_subprocess_exec(
-            *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            start_new_session=True,
         )
-        stdout, stderr = await asyncio.wait_for(
-            process.communicate(), timeout or get_settings().process_timeout_seconds
-        )
+        async def drain(stream, limit: int) -> bytes:
+            retained = bytearray()
+            while chunk := await stream.read(65536):
+                retained.extend(chunk)
+                if len(retained) > limit:
+                    del retained[:-limit]
+            return bytes(retained)
+
+        output_task = asyncio.create_task(drain(process.stdout, 4 * 1024**2))
+        error_task = asyncio.create_task(drain(process.stderr, 256 * 1024))
+        deadline = asyncio.get_running_loop().time() + (timeout or get_settings().process_timeout_seconds)
+        while process.returncode is None:
+            if cancelled and cancelled.is_set():
+                raise ProcessError("job_cancelled", "Media processing cancelled", 409)
+            remaining = deadline - asyncio.get_running_loop().time()
+            if remaining <= 0:
+                raise TimeoutError()
+            try:
+                await asyncio.wait_for(process.wait(), min(0.25, remaining))
+            except TimeoutError:
+                continue
+        stdout, stderr = await asyncio.gather(output_task, error_task)
     except TimeoutError as exc:
-        process.kill()
-        await process.wait()
         raise ProcessError(
             "media_timeout", "Media processing exceeded its time limit", 422
         ) from exc
@@ -33,6 +54,16 @@ async def run_media_command(
         raise ProcessError(
             "media_tool_missing", f"Required media tool is unavailable: {Path(args[0]).name}", 503
         ) from exc
+    finally:
+        if process is not None and process.returncode is None:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                await asyncio.wait_for(process.wait(), 5)
+            except TimeoutError:
+                os.killpg(process.pid, signal.SIGKILL)
+                await process.wait()
+        if "output_task" in locals():
+            await asyncio.gather(output_task, error_task, return_exceptions=True)
     PROCESSES.labels(
         tool=Path(args[0]).name, outcome="success" if process.returncode == 0 else "failure"
     ).inc()
@@ -45,6 +76,8 @@ async def probe(path: Path) -> dict:
             get_settings().ffprobe_binary,
             "-v",
             "error",
+            "-protocol_whitelist",
+            "file,pipe",
             "-show_streams",
             "-show_format",
             "-of",
@@ -60,6 +93,10 @@ async def probe(path: Path) -> dict:
     except json.JSONDecodeError as exc:
         raise ProcessError("invalid_media_probe", "Could not read media metadata", 422) from exc
     streams = data.get("streams", [])
+    format_name = data.get("format", {}).get("format_name", "")
+    allowed_formats = {"mov,mp4,m4a,3gp,3g2,mj2", "matroska,webm", "mp3", "wav", "aac", "flac"}
+    if format_name not in allowed_formats:
+        raise ProcessError("unsupported_media", "Unsupported media container", 415)
     video = next((stream for stream in streams if stream.get("codec_type") == "video"), None)
     audio = next((stream for stream in streams if stream.get("codec_type") == "audio"), None)
     if video is None and audio is None:
@@ -88,7 +125,8 @@ async def probe(path: Path) -> dict:
         "audio_codec": audio.get("codec_name") if audio else None,
         "has_audio": audio is not None,
         "format_name": (data.get("format") or {}).get("format_name"),
-        "mime_type": "video/mp4" if video else "audio/mpeg",
+        "mime_type": ({"matroska,webm": "video/webm", "wav": "audio/wav", "flac": "audio/flac",
+                       "aac": "audio/aac", "mp3": "audio/mpeg"}.get(format_name, "video/mp4" if video else "audio/mp4")),
         "rotation": next(
             (
                 int(x.get("rotation", 0))
@@ -100,7 +138,8 @@ async def probe(path: Path) -> dict:
     }
 
 
-async def generate_thumbnail(source: Path, destination: Path, at_seconds: float = 0.5) -> None:
+async def generate_thumbnail(source: Path, destination: Path, at_seconds: float = 0.5,
+                             cancelled: asyncio.Event | None = None) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     code, _, _ = await run_media_command(
         [
@@ -120,13 +159,14 @@ async def generate_thumbnail(source: Path, destination: Path, at_seconds: float 
             str(destination),
         ],
         timeout=120,
+        cancelled=cancelled,
     )
     if code or not destination.is_file() or destination.stat().st_size == 0:
         destination.unlink(missing_ok=True)
         raise ProcessError("thumbnail_failed", "Thumbnail generation failed", 422)
 
 
-async def generate_proxy(source: Path, destination: Path) -> None:
+async def generate_proxy(source: Path, destination: Path, cancelled: asyncio.Event | None = None) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     code, _, _ = await run_media_command(
         [
@@ -154,6 +194,7 @@ async def generate_proxy(source: Path, destination: Path) -> None:
             str(destination),
         ],
         timeout=get_settings().process_timeout_seconds,
+        cancelled=cancelled,
     )
     if code or not destination.is_file() or destination.stat().st_size == 0:
         destination.unlink(missing_ok=True)

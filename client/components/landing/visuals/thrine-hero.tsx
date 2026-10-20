@@ -24,7 +24,7 @@ export function ThrineHero({
 
   return (
     <div
-      className={`relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[580px] rounded-3xl overflow-hidden border border-white/10 bg-[#07080f]/90 shadow-2xl shadow-violet-950/40 backdrop-blur-md ${className}`}
+      className={`relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[580px] rounded-[2rem] overflow-hidden border border-white/10 bg-[#110e0c]/90 shadow-2xl shadow-amber-950/30 backdrop-blur-md ${className}`}
       aria-label="Cinematic 3D particle bloom visualization"
       role="region"
     >
@@ -36,8 +36,8 @@ export function ThrineHero({
         <div className="absolute inset-0 z-10 transition-opacity duration-700">
           {!iframeLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-20">
-              <div className="flex items-center gap-3 text-xs font-mono text-violet-300">
-                <span className="inline-block w-2 h-2 rounded-full bg-violet-400 animate-ping" />
+              <div className="flex items-center gap-3 text-xs font-mono text-primary">
+                <span className="inline-block w-2 h-2 rounded-full bg-primary animate-ping" />
                 Initializing Thrine 3D Scene...
               </div>
             </div>
@@ -58,15 +58,15 @@ export function ThrineHero({
       )}
 
       {/* Decorative gradient scrim to maintain high contrast with foreground copy */}
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-[#06070b] via-transparent to-transparent opacity-80" />
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-[#06070b]/60 via-transparent to-[#06070b]/60" />
+      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-[#0c0a09] via-transparent to-transparent opacity-80" />
+      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-[#0c0a09]/60 via-transparent to-[#0c0a09]/60" />
 
       {/* Interactive Controls Overlay for Tech Demonstration */}
       <div className="absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
+        <div className="flex items-center gap-2 text-xs font-mono text-stone-300">
           <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
           <span>Mode: {useThrineEmbed ? "Thrine 3D Embed (Beta)" : "Self-Hosted Particle Bloom"}</span>
         </div>
@@ -75,10 +75,10 @@ export function ThrineHero({
           {canEmbed && !hasError && (
             <button
               onClick={() => setUseThrineEmbed(!useThrineEmbed)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-colors border bg-white/5 hover:bg-white/10 text-slate-200 border-white/15 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-colors border bg-white/5 hover:bg-white/10 text-stone-200 border-white/15 cursor-pointer"
               title="Toggle between self-hosted canvas bloom and external Thrine WebGL scene"
             >
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
               <span>{useThrineEmbed ? "Switch to Canvas" : "Load Thrine 3D Scene"}</span>
             </button>
           )}

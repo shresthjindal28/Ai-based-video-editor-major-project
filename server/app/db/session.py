@@ -18,7 +18,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_recycle=s.db_pool_recycle,
     isolation_level="READ COMMITTED",
-    connect_args={"server_settings": {"application_name": "autocut-main"}},
+    connect_args={"server_settings": {"application_name": "autocut-main", "search_path": s.database_schema}},
 )
 Session = async_sessionmaker(engine, expire_on_commit=False)
 

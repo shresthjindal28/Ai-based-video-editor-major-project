@@ -39,6 +39,7 @@ async def run_migrations_online() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"server_settings": {"search_path": get_settings().database_schema}},
     )
     async with connectable.connect() as connection:
         await connection.run_sync(_run_sync_migrations)
@@ -48,4 +49,7 @@ async def run_migrations_online() -> None:
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    if config.attributes.get("connection") is not None:
+        _run_sync_migrations(config.attributes["connection"])
+    else:
+        asyncio.run(run_migrations_online())

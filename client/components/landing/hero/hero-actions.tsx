@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Play, CheckCircle2, ArrowRight } from "lucide-react";
+import { Play, CheckCircle2, ArrowRight } from "lucide-react";
 
 interface HeroActionsProps {
   onOpenWaitlist?: () => void;
@@ -26,28 +26,25 @@ export function HeroActions({ onOpenWaitlist }: HeroActionsProps) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-xl mx-auto">
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-xl mx-auto">
       {submitted ? (
-        <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-violet-950/60 border border-violet-500/40 text-violet-200 text-sm font-medium animate-in fade-in duration-300">
-          <CheckCircle2 className="w-5 h-5 text-cyan-400" />
-          <span>You're on the early access list! 10 free renders unlocked.</span>
+        <div className="flex items-center gap-2 px-5 py-3 rounded-full bg-teal-950/50 border border-teal-500/30 text-teal-100 text-sm font-medium">
+          <CheckCircle2 className="w-5 h-5 text-teal-300" />
+          <span>You&apos;re on the early access list. 10 free renders unlocked.</span>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex w-full sm:w-auto items-center gap-2 flex-1">
-          <div className="relative flex-1">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your creator email..."
-              className="w-full h-12 px-4 rounded-xl bg-white/[0.06] border border-white/15 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30 text-white placeholder-slate-400 text-sm outline-none transition-all shadow-inner backdrop-blur-md"
-              required
-            />
-          </div>
-          <Button type="submit" size="lg" variant="primary" className="whitespace-nowrap">
-            <Sparkles className="w-4 h-4 mr-1 text-cyan-300" />
+        <form onSubmit={handleSubmit} className="flex w-full sm:w-auto items-center gap-2 flex-1 p-1.5 rounded-full border border-white/12 bg-white/[0.04] backdrop-blur-md">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Your creator email"
+            className="w-full h-10 px-4 rounded-full bg-transparent text-white placeholder-stone-500 text-sm outline-none"
+            required
+          />
+          <Button type="submit" size="md" variant="primary" className="whitespace-nowrap shrink-0">
             <span>Claim Access</span>
-            <ArrowRight className="w-4 h-4 ml-1" />
+            <ArrowRight className="w-4 h-4" />
           </Button>
         </form>
       )}
@@ -57,9 +54,9 @@ export function HeroActions({ onOpenWaitlist }: HeroActionsProps) {
         variant="secondary"
         size="lg"
         onClick={scrollToDemo}
-        className="w-full sm:w-auto text-slate-300 hover:text-white"
+        className="w-full sm:w-auto"
       >
-        <Play className="w-4 h-4 mr-1 text-violet-400 fill-violet-400" />
+        <Play className="w-4 h-4 fill-primary text-primary" />
         <span>Watch Demo</span>
       </Button>
     </div>

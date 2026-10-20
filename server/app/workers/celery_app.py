@@ -1,3 +1,5 @@
+import ssl
+
 from celery import Celery
 
 from app.core.config import get_settings
@@ -5,6 +7,7 @@ from app.core.config import get_settings
 settings = get_settings()
 celery_app = Celery("autocut-main", broker=settings.redis_url, backend=settings.redis_url)
 celery_app.conf.update(
+    task_default_queue=settings.celery_queue,
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
@@ -13,7 +16,10 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     worker_concurrency=settings.max_concurrent_renders,
     task_track_started=True,
-    broker_transport_options={"visibility_timeout": 3600},
+    broker_transport_options={"visibility_timeout": settings.process_timeout_seconds + 300,
+                              "socket_connect_timeout": 5, "socket_timeout": 5},
+    broker_connection_timeout=5,
+    task_publish_retry=False,
     result_expires=3600,
     task_soft_time_limit=settings.process_timeout_seconds,
     task_time_limit=settings.process_timeout_seconds + 60,
@@ -24,4 +30,7 @@ celery_app.conf.update(
         "recover-stale-jobs": {"task": "app.workers.tasks.recover_stale_jobs", "schedule": 60.0},
     },
 )
+if settings.redis_url.startswith("rediss://"):
+    celery_app.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+    celery_app.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
 celery_app.autodiscover_tasks(["app.workers"])

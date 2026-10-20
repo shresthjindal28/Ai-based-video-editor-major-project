@@ -15,49 +15,24 @@ import { Footer } from "@/components/landing/footer/footer";
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-[#06070b] text-[#f3f4f6] overflow-x-hidden">
-      {/* Cinematic Ambient Glow & Grain Overlay */}
+    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
       <GlowBackdrop />
-
-      {/* 1. Navigation */}
       <Navbar />
 
       <main>
-        {/* 2. Cinematic Hero */}
         <HeroSection />
-
-        {/* 3. Product Demonstration */}
         <DemoSection />
-
-        {/* 4. How It Works */}
         <HowItWorksSection />
-
-        {/* 5. Before / After Comparison */}
         <BeforeAfterSection />
-
-        {/* 6. Professional Capabilities */}
         <FeaturesSection />
-
-        {/* 7. AI Intelligence */}
         <AiIntelligenceSection />
-
-        {/* 8. Editing Workflow Pipeline */}
         <AiWorkflowSection />
-
-        {/* 9. Use Cases */}
         <UseCasesSection />
-
-        {/* 10. Comparison Matrix */}
         <ComparisonSection />
-
-        {/* 11. FAQ */}
         <FaqSection />
-
-        {/* 12. Final CTA */}
         <CtaSection />
       </main>
 
-      {/* 13. Footer */}
       <Footer />
     </div>
   );

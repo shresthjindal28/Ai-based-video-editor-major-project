@@ -10,24 +10,24 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", children, disabled, ...props }, ref) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer rounded-xl";
+      "inline-flex items-center justify-center font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0a09] disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer rounded-full";
 
     const variants = {
       primary:
-        "bg-gradient-to-r from-violet-600 via-violet-500 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-900/30 hover:shadow-violet-700/40 border border-violet-400/20 active:scale-[0.98]",
+        "bg-gradient-to-r from-[#f3c77a] via-[#e8b86d] to-[#ff8a65] text-[#1a140c] shadow-lg shadow-amber-950/40 hover:brightness-110 border border-amber-200/30 active:scale-[0.98]",
       secondary:
-        "bg-white/10 hover:bg-white/15 text-white border border-white/10 hover:border-white/20 backdrop-blur-md active:scale-[0.98]",
+        "bg-white/[0.06] hover:bg-white/[0.1] text-[#f6f1e8] border border-white/12 hover:border-white/22 backdrop-blur-md active:scale-[0.98]",
       outline:
-        "border border-white/20 hover:border-white/40 text-slate-200 hover:text-white bg-transparent hover:bg-white/5 active:scale-[0.98]",
+        "border border-white/18 hover:border-primary/50 text-stone-200 hover:text-white bg-transparent hover:bg-white/5 active:scale-[0.98]",
       ghost:
-        "text-slate-300 hover:text-white hover:bg-white/5 active:scale-[0.98]",
+        "text-stone-300 hover:text-white hover:bg-white/6 active:scale-[0.98]",
       cyan:
-        "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold shadow-lg shadow-cyan-900/30 hover:shadow-cyan-700/40 active:scale-[0.98]",
+        "bg-gradient-to-r from-teal-400 to-emerald-400 text-[#0c0a09] font-semibold shadow-lg shadow-teal-950/30 hover:brightness-110 active:scale-[0.98]",
     };
 
     const sizes = {
-      sm: "h-8 px-3 text-xs gap-1.5",
-      md: "h-10 px-4 text-sm gap-2",
+      sm: "h-8 px-3.5 text-xs gap-1.5",
+      md: "h-10 px-5 text-sm gap-2",
       lg: "h-12 px-6 text-base gap-2.5",
     };
 

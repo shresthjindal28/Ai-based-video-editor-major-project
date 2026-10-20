@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     auth_jwks_url: str = ""
     auth_algorithms: list[str] = ["EdDSA", "RS256", "ES256"]
     media_storage_root: Path = Path("./var/media")
+    storage_backend: Literal["local", "r2"] = "local"
+    r2_endpoint_url: str = ""
+    r2_bucket: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    database_schema: str = "public"
+    celery_queue: str = "autocut-main"
     max_upload_size_mb: int = Field(default=1024, ge=1)
     max_project_duration_seconds: int = Field(default=3600, ge=1)
     max_concurrent_renders: int = Field(default=2, ge=1)
@@ -45,6 +52,15 @@ class Settings(BaseSettings):
     upload_chunk_size_bytes: int = Field(default=1024 * 1024, ge=65536)
     request_max_bytes: int = Field(default=1024 * 1024, ge=1024)
     max_outbox_attempts: int = Field(default=10, ge=1, le=100)
+
+    @field_validator("database_schema")
+    @classmethod
+    def valid_database_schema(cls, value: str) -> str:
+        import re
+
+        if not re.fullmatch(r"[a-z][a-z0-9_]{0,62}", value):
+            raise ValueError("DATABASE_SCHEMA must be a PostgreSQL identifier")
+        return value
 
     @field_validator("database_url")
     @classmethod

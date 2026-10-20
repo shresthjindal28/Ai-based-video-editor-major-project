@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 from datetime import timedelta
 from uuid import UUID
@@ -10,16 +11,27 @@ from app.db.base import now
 from app.db.session import Session
 from app.modules.assets.processing import process_asset
 from app.modules.jobs.models import EditJob, Outbox
-from app.modules.jobs.service import ACTIVE, append_event
+from app.modules.jobs.service import append_event
 from app.modules.rendering.service import render_job
 from app.workers.celery_app import celery_app
+
+logger = logging.getLogger(__name__)
+_runner: asyncio.Runner | None = None
+
+
+def run_async(operation):
+    """Reuse one event loop per prefork process for asyncpg/Redis pools."""
+    global _runner
+    if _runner is None:
+        _runner = asyncio.Runner()
+    return _runner.run(operation)
 
 
 @celery_app.task(
     name="app.workers.tasks.execute_job", bind=True, acks_late=True, reject_on_worker_lost=True
 )
 def execute_job(self, job_id: str) -> None:
-    asyncio.run(_execute(UUID(job_id)))
+    run_async(_execute(UUID(job_id)))
 
 
 async def _execute(job_id: UUID) -> None:
@@ -33,27 +45,16 @@ async def _execute(job_id: UUID) -> None:
             await process_asset(asset_id, job_id)
         else:
             await render_job(job_id)
-    except Exception as exc:
-        async with Session() as session:
-            job = await session.scalar(
-                select(EditJob).where(EditJob.id == job_id).with_for_update()
-            )
-            if job and job.status not in {"completed", "failed", "cancelled"}:
-                job.status, job.completed_at = "failed", now()
-                job.error_code = getattr(exc, "code", "worker_error")
-                job.error_message = getattr(exc, "message", "Background processing failed")[:1000]
-                await append_event(
-                    session,
-                    job,
-                    "failed",
-                    {"error_code": job.error_code, "message": job.error_message},
-                )
-                await session.commit()
+    except Exception:
+        # Handlers persist failure under their own fencing token. An unowned
+        # exception must never overwrite a newer worker's result.
+        logger.exception("background attempt failed", extra={"job_id": str(job_id)})
+        raise
 
 
 @celery_app.task(name="app.workers.tasks.dispatch_outbox", ignore_result=True)
 def dispatch_outbox() -> int:
-    return asyncio.run(_dispatch())
+    return run_async(_dispatch())
 
 
 async def _dispatch() -> int:
@@ -71,8 +72,8 @@ async def _dispatch() -> int:
             ).all()
         )
         for row in rows:
-            job = await session.get(EditJob, row.job_id)
-            if job is None or job.status not in ACTIVE:
+            job = await session.scalar(select(EditJob).where(EditJob.id == row.job_id).with_for_update())
+            if job is None or job.status not in {"pending", "queued"}:
                 row.delivered_at = now()
                 continue
             try:
@@ -81,6 +82,7 @@ async def _dispatch() -> int:
                 row.attempts += 1
                 job.status = "queued" if job.status == "pending" else job.status
                 job.celery_task_id = str(job.id)
+                job.heartbeat_at = now()
                 await append_event(session, job, "queued", {"status": job.status})
                 dispatched += 1
             except Exception as exc:
@@ -105,29 +107,31 @@ async def _dispatch() -> int:
 
 @celery_app.task(name="app.workers.tasks.recover_stale_jobs", ignore_result=True)
 def recover_stale_jobs() -> int:
-    return asyncio.run(_recover())
+    return run_async(_recover())
 
 
 async def _recover() -> int:
     recovered = 0
     # Rendering has an explicit heartbeat; this window exceeds the configured
     # subprocess timeout so a live but slow render is never reclaimed.
-    stale_before = now() - timedelta(
-        seconds=max(900, get_settings().process_timeout_seconds + 120)
-    )
+    stale_before = now() - timedelta(seconds=get_settings().job_lease_seconds)
     async with Session() as session:
         rows = list(
             (
                 await session.scalars(
                     select(EditJob)
-                    .where(EditJob.status == "processing", EditJob.heartbeat_at < stale_before)
+                    .where(EditJob.status.in_(["processing", "cancelling"]), EditJob.heartbeat_at < stale_before)
                     .limit(100)
                     .with_for_update(skip_locked=True)
                 )
             ).all()
         )
         for job in rows:
-            if job.retry_count >= get_settings().max_job_retries:
+            if job.status == "cancelling":
+                job.status, job.completed_at = "cancelled", now()
+                job.fence += 1
+                await append_event(session, job, "cancelled", {"status": "cancelled"})
+            elif job.retry_count >= get_settings().max_job_retries:
                 job.status, job.error_code, job.error_message, job.completed_at = (
                     "failed",
                     "worker_lost",
@@ -146,7 +150,7 @@ async def _recover() -> int:
             (
                 await session.scalars(
                     select(EditJob)
-                    .where(EditJob.status == "queued", EditJob.created_at < stale_before)
+                    .where(EditJob.status == "queued", EditJob.heartbeat_at < stale_before)
                     .limit(100)
                     .with_for_update(skip_locked=True)
                 )

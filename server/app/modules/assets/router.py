@@ -32,7 +32,7 @@ async def get(project_id: UUID, asset_id: UUID, db: DB, user: CurrentUser):
 @router.get("/{asset_id}/download")
 async def download(project_id: UUID, asset_id: UUID, request: Request, db: DB, user: CurrentUser):
     asset = await get(project_id, asset_id, db, user)
-    path = storage.path(asset.storage_key)
+    path = await storage.materialize(asset.storage_key)
     if not path.is_file():
         raise DomainError("asset_missing", "Stored media is unavailable", 410)
     return ranged_file_response(path, request, asset.mime_type, asset.original_filename)
@@ -43,5 +43,5 @@ async def delete(project_id: UUID, asset_id: UUID, db: DB, user: CurrentUser):
     asset = await get(project_id, asset_id, db, user)
     await service.delete_owned_asset(db, asset.id, user.id)
     await db.commit()
-    storage.delete(asset.storage_key)
+    await storage.remove(asset.storage_key)
     return Response(status_code=204)

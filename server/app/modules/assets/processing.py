@@ -4,90 +4,61 @@ from uuid import UUID
 
 from sqlalchemy import select
 
+from app.core.exceptions import DomainError
 from app.db.base import now
 from app.db.session import Session
 from app.integrations.storage_client import storage
 from app.modules.assets.models import AssetAnalysis, MediaAsset
-from app.modules.jobs.models import EditJob
+from app.modules.jobs.runtime import check_attempt, claim, fail_attempt, lease, progress
 from app.modules.jobs.service import append_event
 from app.modules.rendering.media_probe import generate_proxy, generate_thumbnail
 
 
 async def process_asset(asset_id: UUID, job_id: UUID) -> None:
     async with Session() as session:
-        job = await session.scalar(select(EditJob).where(EditJob.id == job_id).with_for_update())
-        asset = await session.scalar(
-            select(MediaAsset).where(MediaAsset.id == asset_id).with_for_update()
-        )
-        if job is None or asset is None or job.status in {"completed", "failed", "cancelled"}:
+        job = await claim(session, job_id)
+        if job is None:
             return
-        if (
-            job.status == "processing"
-            and job.heartbeat_at
-            and (now() - job.heartbeat_at).total_seconds() < 600
-        ):
-            return
-        job.status, job.started_at, job.heartbeat_at = "processing", now(), now()
-        job.fence += 1
         fence = job.fence
-        asset.processing_status = "processing"
-        source = storage.path(asset.storage_key)
-        thumbnail_key = f"derived/{asset.id.hex}/thumbnail.jpg"
-        proxy_key = f"derived/{asset.id.hex}/proxy.mp4"
-        thumbnail, proxy = storage.path(thumbnail_key), storage.path(proxy_key)
         await session.commit()
+    prefix = f"derived/{asset_id.hex}/{fence}"
+    keys = [f"{prefix}/thumbnail.jpg", f"{prefix}/proxy.mp4"]
+    completed = False
     try:
-        if not source.is_file():
-            raise FileNotFoundError("Source upload is unavailable")
-        if asset.media_type == "video":
-            await generate_thumbnail(source, thumbnail)
-            await generate_proxy(source, proxy)
-        async with Session() as session:
-            job = await session.scalar(
-                select(EditJob).where(EditJob.id == job_id).with_for_update()
-            )
-            asset = await session.scalar(
-                select(MediaAsset).where(MediaAsset.id == asset_id).with_for_update()
-            )
-            if job is None or asset is None or job.status == "cancelling" or job.fence != fence:
-                thumbnail.unlink(missing_ok=True)
-                proxy.unlink(missing_ok=True)
-                if asset and job and job.status == "cancelling":
-                    asset.processing_status = "cancelled"
-                    job.status, job.completed_at = "cancelled", now()
-                    await append_event(session, job, "cancelled", {"status": "cancelled"})
-                    await session.commit()
-                return
-            analysis = await session.scalar(
-                select(AssetAnalysis).where(AssetAnalysis.asset_id == asset.id)
-            )
-            if analysis:
-                analysis.thumbnail_key = thumbnail_key if thumbnail.exists() else None
-                analysis.proxy_key = proxy_key if proxy.exists() else None
-            asset.processing_status = "ready"
-            job.status, job.progress, job.completed_at, job.heartbeat_at = (
-                "completed",
-                100,
-                now(),
-                now(),
-            )
-            await append_event(session, job, "completed", {"status": "completed", "progress": 100})
-            await session.commit()
+        async with lease(job_id, fence) as cancelled:
+            async with Session() as session:
+                asset = await session.get(MediaAsset, asset_id)
+                if asset is None or asset.deleted_at:
+                    raise DomainError("asset_missing", "Source asset is unavailable", 410)
+                asset.processing_status = "processing"
+                source_key, media_type = asset.storage_key, asset.media_type
+                await session.commit()
+            source = await storage.materialize(source_key)
+            if media_type == "video":
+                await generate_thumbnail(source, storage.path(keys[0]), cancelled=cancelled)
+                await progress(job_id, fence, 30)
+                await generate_proxy(source, storage.path(keys[1]), cancelled=cancelled)
+                for key in keys:
+                    await storage.publish(key)
+            await progress(job_id, fence, 95)
+            async with Session() as session:
+                job = await check_attempt(session, job_id, fence)
+                asset = await session.get(MediaAsset, asset_id)
+                if asset is None or asset.deleted_at:
+                    raise DomainError("asset_missing", "Source asset is unavailable", 410)
+                analysis = await session.scalar(select(AssetAnalysis).where(AssetAnalysis.asset_id == asset_id))
+                if analysis and media_type == "video":
+                    analysis.thumbnail_key, analysis.proxy_key = keys
+                asset.processing_status = "ready"
+                job.status, job.progress, job.completed_at = "completed", 100, now()
+                await append_event(session, job, "completed", {"status": "completed", "progress": 100})
+                await session.commit()
+                completed = True
     except Exception as exc:
-        thumbnail.unlink(missing_ok=True)
-        proxy.unlink(missing_ok=True)
-        async with Session() as session:
-            job = await session.get(EditJob, job_id)
-            asset = await session.get(MediaAsset, asset_id)
-            if job and job.status not in {"completed", "cancelled"}:
-                job.status, job.error_code, job.error_message, job.completed_at = (
-                    "failed",
-                    "asset_processing_failed",
-                    type(exc).__name__,
-                    now(),
-                )
-                await append_event(session, job, "failed", {"error_code": job.error_code})
-            if asset:
-                asset.processing_status = "failed"
-            await session.commit()
+        await fail_attempt(job_id, fence, exc)
         raise
+    finally:
+        if not completed:
+            # Attempt-specific keys keep stale cleanup away from newer work.
+            for key in keys:
+                storage.delete(key)

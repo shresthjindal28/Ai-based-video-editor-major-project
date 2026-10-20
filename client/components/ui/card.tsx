@@ -9,10 +9,10 @@ export function Card({ className, glow = false, children, ...props }: CardProps)
   return (
     <div
       className={cn(
-        "rounded-2xl border transition-all duration-300",
+        "rounded-3xl border transition-all duration-300",
         glow
-          ? "border-violet-500/20 bg-gradient-to-b from-[#131625]/80 to-[#0b0d16]/90 shadow-lg shadow-violet-950/20 backdrop-blur-xl"
-          : "border-white/10 bg-[#0c0e18]/80 backdrop-blur-xl hover:border-white/20",
+          ? "border-primary/25 bg-gradient-to-b from-[#1c1814]/90 to-[#110e0c]/95 shadow-lg shadow-amber-950/25 backdrop-blur-xl"
+          : "border-white/10 bg-[#14110f]/80 backdrop-blur-xl hover:border-primary/25",
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ export function CardHeader({ className, children, ...props }: React.HTMLAttribut
 
 export function CardTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn("text-lg font-semibold tracking-tight text-white", className)} {...props}>
+    <h3 className={cn("text-lg font-semibold tracking-tight text-[#f6f1e8]", className)} {...props}>
       {children}
     </h3>
   );
@@ -40,7 +40,7 @@ export function CardTitle({ className, children, ...props }: React.HTMLAttribute
 
 export function CardDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-sm text-slate-400 leading-relaxed", className)} {...props}>
+    <p className={cn("text-sm text-stone-400 leading-relaxed", className)} {...props}>
       {children}
     </p>
   );

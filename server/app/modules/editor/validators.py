@@ -17,6 +17,9 @@ EFFECT_RANGES = {
     "pan": {"value": (-1.0, 1.0)},
     "tilt": {"value": (-1.0, 1.0)},
     "blur": {"sigma": (0.0, 20.0)},
+    "fade_in": {"frames": (1, 10000)},
+    "fade_out": {"frames": (1, 10000)},
+    "color": {"red": (-0.5, 0.5), "green": (-0.5, 0.5), "blue": (-0.5, 0.5)},
 }
 
 
@@ -59,6 +62,8 @@ async def validate_plan(
         raise DomainError("timeline_too_long", "Timeline exceeds the configured duration", 422)
     for clip in plan.clips:
         asset = by_id[clip.asset_id]
+        if asset.media_type != "video":
+            raise DomainError("video_asset_required", "Video clips must reference a video stream", 422)
         source_fps = asset.fps_num / asset.fps_den if asset.fps_num else fps
         source_end_seconds = (
             clip.source_in_frame / source_fps
@@ -69,6 +74,10 @@ async def validate_plan(
                 "source_range_invalid", f"Clip {clip.id} extends beyond its source media", 422
             )
         for effect in clip.effects:
+            if effect.id == "lut":
+                if set(effect.parameters) != {"name"} or effect.parameters["name"] not in {"warm", "cool"} or effect.keyframes:
+                    raise DomainError("effect_parameters_invalid", "LUT must select warm or cool", 422)
+                continue
             allowed = EFFECT_RANGES[effect.id]
             if set(effect.parameters) != set(allowed):
                 raise DomainError(
@@ -84,6 +93,16 @@ async def validate_plan(
                         f"{effect.id}.{name} must be between {low} and {high}",
                         422,
                     )
+            if effect.id in {"fade_in", "fade_out"}:
+                if effect.parameters["frames"] > clip.duration_frames or not isinstance(effect.parameters["frames"], int):
+                    raise DomainError("effect_parameters_invalid", "Fade frames must be an integer within the clip", 422)
+            if effect.keyframes:
+                if effect.id not in {"pan", "tilt", "zoom"}:
+                    raise DomainError("effect_keyframes_unsupported", "Only camera effects accept value keyframes", 422)
+                frames = [key.frame for key in effect.keyframes]
+                low, high = allowed["value"]
+                if frames != sorted(set(frames)) or any(key.frame >= clip.duration_frames or not low <= key.value <= high for key in effect.keyframes):
+                    raise DomainError("effect_keyframes_invalid", "Camera keyframes must be ordered and within the supported range", 422)
     for track in plan.audio:
         asset = by_id[track.asset_id]
         if not asset.has_audio:
@@ -122,11 +141,20 @@ async def validate_plan(
                 "transition_duplicate", "A clip pair may have only one transition", 422
             )
         transition_pairs.add(pair)
+        overlap = left.timeline_start_frame + left.duration_frames - right.timeline_start_frame
+        if right.timeline_start_frame <= left.timeline_start_frame or overlap != transition.duration_frames:
+            raise DomainError("transition_invalid", "Transitions require ordered clips with an exact matching overlap", 422)
+    total_frames = round(total * fps)
+    if any(title.start_frame + title.duration_frames > total_frames for title in plan.titles):
+        raise DomainError("title_range_invalid", "Titles must remain inside the timeline", 422)
     grouped = defaultdict(list)
     for clip in plan.clips:
         grouped[clip.track].append(clip)
     for track_clips in grouped.values():
         track_clips.sort(key=lambda clip: clip.timeline_start_frame)
+        if any(a.timeline_start_frame + a.duration_frames > c.timeline_start_frame
+               for a, c in zip(track_clips, track_clips[2:], strict=False)):
+            raise DomainError("timeline_overlap", "At most two video clips may overlap on a track", 422)
         for left, right in zip(track_clips, track_clips[1:], strict=False):
             overlap = left.timeline_start_frame + left.duration_frames - right.timeline_start_frame
             if overlap > 0:

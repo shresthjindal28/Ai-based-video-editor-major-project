@@ -33,23 +33,23 @@ export function ComparisonSlider() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Mode Switcher */}
-      <div className="flex items-center gap-2 p-1 rounded-xl bg-white/5 border border-white/10 mb-6">
+      <div className="flex items-center gap-2 p-1 rounded-full bg-white/5 border border-white/10 mb-6">
         <button
           onClick={() => setActiveTab("visual")}
-          className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
             activeTab === "visual"
-              ? "bg-violet-600 text-white shadow-md shadow-violet-900/40"
-              : "text-slate-400 hover:text-white"
+              ? "bg-primary text-[#1a140c] shadow-md shadow-amber-900/30"
+              : "text-stone-400 hover:text-white"
           }`}
         >
           Visual & Color Grading
         </button>
         <button
           onClick={() => setActiveTab("audio")}
-          className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
             activeTab === "audio"
-              ? "bg-violet-600 text-white shadow-md shadow-violet-900/40"
-              : "text-slate-400 hover:text-white"
+              ? "bg-primary text-[#1a140c] shadow-md shadow-amber-900/30"
+              : "text-stone-400 hover:text-white"
           }`}
         >
           Voice Isolation & Sound Design
@@ -64,29 +64,29 @@ export function ComparisonSlider() {
         onMouseLeave={() => setIsDragging(false)}
         onMouseMove={handleMouseMove}
         onTouchMove={handleTouchMove}
-        className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[540px] rounded-2xl overflow-hidden border border-white/15 shadow-2xl shadow-violet-950/30 select-none cursor-ew-resize bg-[#090b14]"
+        className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[540px] rounded-[2rem] overflow-hidden border border-white/15 shadow-2xl shadow-amber-950/25 select-none cursor-ew-resize bg-[#110e0c]"
         role="region"
         aria-label="Before and after video comparison slider"
       >
         {/* Right Layer (After: AutoCut AI Master) - Fully visible underneath */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#121422] via-[#1a1230] to-[#091b29] flex items-center justify-center p-6">
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#1a1410] via-[#2a1a14] to-[#12201c] flex items-center justify-center p-6">
           {/* Visual simulation of graded, punchy frame */}
           <div className="w-full h-full flex flex-col items-center justify-center relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-violet-500/20 via-cyan-500/10 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/20 via-rose-500/10 to-transparent" />
             
             {/* Subject Simulation */}
             <div className="relative z-10 flex flex-col items-center">
               <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-amber-200 via-rose-300 to-amber-100 shadow-2xl shadow-amber-500/20 border-2 border-amber-300/40 flex items-center justify-center text-slate-900 font-bold text-xs">
                 Cinematic Lighting
               </div>
-              <div className="mt-4 px-4 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-cyan-400/40 text-cyan-300 font-mono text-xs sm:text-sm font-bold shadow-lg">
+              <div className="mt-4 px-4 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-primary/40 text-primary font-mono text-xs sm:text-sm font-bold shadow-lg">
                 AutoCut Master • Kodak 2383 LUT • Studio Audio
               </div>
             </div>
 
             {/* After details tags */}
             <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
-              <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-mono text-[11px] font-bold">
+              <span className="px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-primary font-mono text-[11px] font-bold">
                 AFTER: AutoCut AI
               </span>
               <div className="hidden sm:flex flex-col gap-1 items-end text-[10px] text-slate-300 font-mono bg-black/60 p-2 rounded border border-white/10">
@@ -106,7 +106,7 @@ export function ComparisonSlider() {
 
         {/* Left Layer (Before: Raw S-Log3 Footage) - Clipped by sliderPosition */}
         <div
-          className="absolute inset-0 overflow-hidden bg-[#1a1b1f] border-r border-cyan-400/80"
+          className="absolute inset-0 overflow-hidden bg-[#1a1b1f] border-r border-primary/80"
           style={{ width: `${sliderPosition}%` }}
         >
           <div
@@ -145,18 +145,18 @@ export function ComparisonSlider() {
 
         {/* Divider scrubber line & handle */}
         <div
-          className="absolute top-0 bottom-0 w-[2px] bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] z-30"
+          className="absolute top-0 bottom-0 w-[2px] bg-primary shadow-[0_0_12px_rgba(232,184,109,0.8)] z-30"
           style={{ left: `${sliderPosition}%` }}
         >
-          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-lg shadow-cyan-950/80 border-2 border-white">
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-primary text-[#1a140c] flex items-center justify-center shadow-lg shadow-amber-950/80 border-2 border-white">
             <Sliders className="w-4 h-4 rotate-90" />
           </div>
         </div>
       </div>
 
       {/* Instructional helper below slider */}
-      <p className="mt-3 text-xs text-slate-400 font-mono flex items-center gap-1.5">
-        <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+      <p className="mt-3 text-xs text-stone-400 font-mono flex items-center gap-1.5">
+        <Sliders className="w-3.5 h-3.5 text-primary" />
         <span>Drag slider horizontally or swipe to inspect the transformation</span>
       </p>
     </div>

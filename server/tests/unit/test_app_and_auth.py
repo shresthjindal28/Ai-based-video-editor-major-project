@@ -1,3 +1,5 @@
+import app.modules.auth.service as auth_service
+from app.core.config import Settings
 from app.main import app
 from app.modules.auth.service import IdentityVerifier
 from app.modules.jobs.service import ACTIVE, TERMINAL
@@ -16,6 +18,8 @@ def test_job_lifecycle_sets_are_disjoint():
     assert set(ACTIVE).isdisjoint(TERMINAL)
 
 
-def test_auth_is_fail_closed_when_not_configured():
+def test_auth_is_fail_closed_when_not_configured(monkeypatch):
+    monkeypatch.setattr(auth_service, "get_settings", lambda: Settings(
+        _env_file=None, auth_jwks_url="", auth_issuer="", auth_audience=""))
     verifier = IdentityVerifier()
     assert verifier.client is None

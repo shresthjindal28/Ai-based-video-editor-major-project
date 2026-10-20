@@ -40,11 +40,11 @@ export function ParticleFallback({ className = "" }: { className?: string }) {
 
     // Generate Bloom Particles
     const colors = [
-      "rgba(139, 92, 246, ", // violet
-      "rgba(168, 85, 247, ", // purple
-      "rgba(6, 182, 212, ",  // cyan
-      "rgba(56, 189, 248, ", // sky
-      "rgba(244, 114, 182, ", // pink accent
+      "rgba(232, 184, 109, ",
+      "rgba(255, 122, 89, ",
+      "rgba(110, 200, 184, ",
+      "rgba(251, 191, 36, ",
+      "rgba(253, 186, 116, ",
     ];
 
     const particleCount = prefersReducedMotion ? 25 : 65;
@@ -82,9 +82,9 @@ export function ParticleFallback({ className = "" }: { className?: string }) {
         height / 2,
         Math.min(width, height) * 0.45
       );
-      radial.addColorStop(0, "rgba(139, 92, 246, 0.18)");
-      radial.addColorStop(0.3, "rgba(6, 182, 212, 0.08)");
-      radial.addColorStop(1, "rgba(6, 7, 11, 0)");
+      radial.addColorStop(0, "rgba(232, 184, 109, 0.2)");
+      radial.addColorStop(0.3, "rgba(255, 122, 89, 0.08)");
+      radial.addColorStop(1, "rgba(12, 10, 9, 0)");
       ctx.fillStyle = radial;
       ctx.fillRect(0, 0, width, height);
 
@@ -114,7 +114,7 @@ export function ParticleFallback({ className = "" }: { className?: string }) {
             const dy = particles[i].y - particles[j].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 65) {
-              ctx.strokeStyle = `rgba(139, 92, 246, ${0.12 * (1 - dist / 65)})`;
+              ctx.strokeStyle = `rgba(232, 184, 109, ${0.14 * (1 - dist / 65)})`;
               ctx.beginPath();
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);

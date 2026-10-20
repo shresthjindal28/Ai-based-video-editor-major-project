@@ -1,34 +1,33 @@
 import React from "react";
-import { Film, Shield, Terminal, Globe, Code2 } from "lucide-react";
+import { Film, Shield } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-[#05060a] text-slate-400 py-16 text-xs font-sans">
+    <footer className="border-t border-white/8 bg-[#090807] text-stone-400 py-16 text-xs font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-14">
-          {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-cyan-500 p-[1px] shadow-lg shadow-violet-900/30">
-                <div className="w-full h-full bg-[#080911] rounded-[7px] flex items-center justify-center">
-                  <Film className="w-4 h-4 text-violet-300" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-rose-400 p-[1px]">
+                <div className="w-full h-full bg-[#110e0c] rounded-[10px] flex items-center justify-center">
+                  <Film className="w-4 h-4 text-amber-200" />
                 </div>
               </div>
-              <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-1">
-                AutoCut<span className="text-violet-400">AI</span>
+              <span className="font-semibold text-base tracking-tight text-white">
+                AutoCut<span className="font-serif italic text-primary"> AI</span>
               </span>
             </div>
 
-            <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
+            <p className="text-sm text-stone-400 max-w-sm leading-relaxed">
               Autonomous AI video editing for creative storytellers. Upload raw multicam footage, describe your vision, and get a polished 4K timeline in minutes.
             </p>
 
-            <div className="flex items-center gap-3 text-slate-400 pt-2">
+            <div className="flex items-center gap-3 text-stone-400 pt-2">
               <a
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 hover:text-white flex items-center justify-center transition-colors"
                 aria-label="GitHub Repository"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -39,7 +38,7 @@ export function Footer() {
                 href="https://x.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 hover:text-white flex items-center justify-center transition-colors"
                 aria-label="X / Twitter"
               >
                 <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -50,7 +49,7 @@ export function Footer() {
                 href="https://youtube.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 hover:text-white flex items-center justify-center transition-colors"
                 aria-label="YouTube Channel"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -60,9 +59,8 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Product Links */}
           <div className="space-y-3">
-            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
+            <h4 className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-white">
               Product
             </h4>
             <ul className="space-y-2">
@@ -94,9 +92,8 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Technology & Docs */}
           <div className="space-y-3">
-            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
+            <h4 className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-white">
               Architecture
             </h4>
             <ul className="space-y-2">
@@ -128,13 +125,12 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Trust & Legal */}
           <div className="space-y-3">
-            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
+            <h4 className="text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-white">
               Security & Terms
             </h4>
             <ul className="space-y-2">
-              <li className="flex items-center gap-1.5 text-emerald-400">
+              <li className="flex items-center gap-1.5 text-teal-300">
                 <Shield className="w-3.5 h-3.5" />
                 <span>Zero Training Guarantee</span>
               </li>
@@ -157,13 +153,12 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
+        <div className="pt-8 border-t border-white/6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-stone-500">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>All GPU Rendering Clusters Operational</span>
+            <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+            <span>All GPU rendering clusters operational</span>
           </div>
-          <p>© 2026 AutoCut AI. All rights reserved. Autonomous AI video editor.</p>
+          <p>© 2026 AutoCut AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

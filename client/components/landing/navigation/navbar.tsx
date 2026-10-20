@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { NAV_LINKS } from "@/lib/constants/navigation";
 import { useScrollPosition } from "@/hooks/use-scroll-position";
 import { MobileMenu } from "./mobile-menu";
-import { Film, Menu, Sparkles, ArrowRight } from "lucide-react";
+import { Film, Menu, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
@@ -30,72 +30,62 @@ export function Navbar({ onOpenWaitlist }: NavbarProps) {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-          isScrolled
-            ? "bg-[#06070b]/80 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/40 py-3.5"
-            : "bg-transparent py-5"
+          isScrolled ? "py-3" : "py-5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo */}
+        <div
+          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between rounded-full transition-all duration-300 ${
+            isScrolled
+              ? "bg-[#110e0c]/80 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/30 py-2.5 px-4 sm:px-5"
+              : "bg-transparent py-1"
+          }`}
+        >
           <a
             href="#"
-            className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 rounded-lg p-1"
+            className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 rounded-full p-1"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-fuchsia-600 to-cyan-400 p-[1px] shadow-lg shadow-violet-900/30 group-hover:shadow-violet-600/40 transition-shadow">
-              <div className="w-full h-full bg-[#090b14] rounded-[11px] flex items-center justify-center">
-                <Film className="w-4 h-4 text-violet-300 group-hover:text-cyan-300 transition-colors" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 p-[1px] shadow-lg shadow-amber-900/30">
+              <div className="w-full h-full bg-[#110e0c] rounded-[14px] flex items-center justify-center">
+                <Film className="w-4 h-4 text-amber-200 group-hover:text-teal-200 transition-colors" />
               </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight text-white flex items-center gap-1">
-                AutoCut
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
-                  AI
-                </span>
-              </span>
-            </div>
+            <span className="font-semibold text-lg tracking-tight text-[#f6f1e8]">
+              AutoCut
+              <span className="font-serif italic text-primary ml-1">AI</span>
+            </span>
           </a>
 
-          {/* Desktop Navigation */}
           <nav
-            className="hidden md:flex items-center gap-1 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md"
+            className="hidden lg:flex items-center gap-0.5 px-2 py-1 rounded-full border border-white/8 bg-white/[0.03] backdrop-blur-md"
             aria-label="Main Navigation"
           >
             {NAV_LINKS.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                className="px-3 py-1.5 text-[13px] font-medium text-stone-300 hover:text-white hover:bg-white/8 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
               >
                 {item.label}
               </a>
             ))}
           </nav>
 
-          {/* Actions */}
           <div className="hidden sm:flex items-center gap-3">
             <a
               href="#demo"
-              className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 rounded-lg"
+              className="text-sm font-medium text-stone-300 hover:text-white px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 rounded-full"
             >
               Sign In
             </a>
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={handleWaitlistClick}
-              className="text-xs px-4 py-2"
-            >
-              <Sparkles className="w-3.5 h-3.5 mr-1" />
+            <Button size="sm" variant="primary" onClick={handleWaitlistClick}>
               <span>Get Started</span>
-              <ArrowRight className="w-3 h-3 ml-0.5" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
 
-          {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 md:hidden cursor-pointer"
+            className="p-2 rounded-full text-stone-300 hover:text-white hover:bg-white/5 lg:hidden cursor-pointer"
             aria-label="Open mobile navigation menu"
           >
             <Menu className="w-6 h-6" />
@@ -103,7 +93,6 @@ export function Navbar({ onOpenWaitlist }: NavbarProps) {
         </div>
       </header>
 
-      {/* Mobile Menu */}
       <MobileMenu
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}

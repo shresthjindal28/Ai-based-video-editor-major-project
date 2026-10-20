@@ -26,6 +26,12 @@ async def verify_render(path: Path, plan: TimelinePlan) -> dict:
         * plan.output.fps_den
         / plan.output.fps_num
     )
+    expected_rate = plan.output.fps_num / plan.output.fps_den
+    actual_rate = info["fps_num"] / info["fps_den"]
+    if abs(actual_rate - expected_rate) > 0.01:
+        raise ProcessError("qc_framerate_mismatch", "Output frame rate differs from the timeline", 422)
+    if not info["has_audio"]:
+        raise ProcessError("qc_audio_missing", "Output audio stream is missing", 422)
     if abs(info["duration"] - expected) > max(0.25, 2 * plan.output.fps_den / plan.output.fps_num):
         raise ProcessError(
             "qc_duration_mismatch", "Rendered duration differs from the requested timeline", 422

@@ -10,22 +10,19 @@ export function FaqSection() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center text-center mb-16">
           <Badge variant="cyan" className="mb-4">
-            <HelpCircle className="w-3 h-3 text-cyan-400" />
+            <HelpCircle className="w-3 h-3" />
             Frequently Asked Questions
           </Badge>
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          <h2 className="font-serif text-4xl sm:text-5xl tracking-tight text-[#fff8ee] leading-tight">
             Everything you need to know about{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-300">
-              AutoCut AI.
-            </span>
+            <span className="italic text-gradient-primary">AutoCut AI.</span>
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-400">
+          <p className="mt-4 text-base sm:text-lg text-stone-400">
             Straightforward answers about footage retention, privacy, supported codecs, and timeline workflows.
           </p>
         </div>
 
-        {/* Accordion list */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {FAQ_ITEMS.map((item) => (
             <FaqAccordionItem key={item.id} item={item} />
           ))}

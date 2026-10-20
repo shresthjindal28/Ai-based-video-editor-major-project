@@ -17,10 +17,17 @@ class EditVersionOut(BaseModel):
     validation_status: str
 
 
+class EffectKeyframe(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    frame: int = Field(ge=0)
+    value: float
+
+
 class EffectSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    id: Literal["brightness", "contrast", "saturation", "zoom", "pan", "tilt", "blur"]
+    id: Literal["brightness", "contrast", "saturation", "zoom", "pan", "tilt", "blur", "fade_in", "fade_out", "color", "lut"]
     parameters: dict[str, Any] = Field(default_factory=dict)
+    keyframes: list[EffectKeyframe] = Field(default_factory=list, max_length=100)
 
 
 class Keyframe(BaseModel):
@@ -53,7 +60,7 @@ class TransitionSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
     from_clip: UUID
     to_clip: UUID
-    type: Literal["cross_dissolve", "wipe"]
+    type: Literal["cross_dissolve", "wipe", "slide"]
     duration_frames: int = Field(gt=0, le=300)
 
 
@@ -64,6 +71,7 @@ class OutputProfile(BaseModel):
     fps_num: Literal[24, 25, 30, 50, 60] = 30
     fps_den: Literal[1, 2, 3, 4] = 1
     format: Literal["mp4"] = "mp4"
+    fit: Literal["contain", "cover"] = "contain"
     preset: Literal["preview", "1080p_landscape", "1080p_portrait", "1080p_square"] = (
         "1080p_landscape"
     )
@@ -96,6 +104,16 @@ class AudioClipSpec(BaseModel):
     fade_out_frames: int = Field(default=0, ge=0)
 
 
+class TitleSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=1, max_length=2000)
+    start_frame: int = Field(ge=0)
+    duration_frames: int = Field(gt=0)
+    font_size: int = Field(default=48, ge=12, le=180)
+    color: Literal["white", "black", "yellow"] = "white"
+    position: Literal["top", "center", "bottom"] = "bottom"
+
+
 class TimelinePlan(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: Literal["1"] = "1"
@@ -104,5 +122,6 @@ class TimelinePlan(BaseModel):
     clips: list[ClipSpec] = Field(min_length=1, max_length=500)
     audio: list[AudioClipSpec] = Field(default_factory=list, max_length=16)
     transitions: list[TransitionSpec] = Field(default_factory=list, max_length=100)
+    titles: list[TitleSpec] = Field(default_factory=list, max_length=100)
     metadata: dict[str, Any] = Field(default_factory=dict)
     provenance: dict[str, Any] = Field(default_factory=dict)
