@@ -5,7 +5,9 @@ import json
 import logging
 import math
 import os
+import shutil
 import signal
+import sys
 from fractions import Fraction
 from pathlib import Path
 
@@ -31,8 +33,11 @@ async def _run_media_command(
 ) -> tuple[int, bytes, bytes]:
     process = None
     try:
+        if shutil.which(args[0]) is None:
+            raise FileNotFoundError(args[0])
         process = await asyncio.create_subprocess_exec(
-            *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            sys.executable, "-m", "app.modules.rendering.process_guard", str(os.getpid()), *args,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
             start_new_session=True,
         )
         async def drain(stream, limit: int) -> bytes:
@@ -67,17 +72,25 @@ async def _run_media_command(
         ) from exc
     finally:
         if process is not None and process.returncode is None:
-            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                await process.wait()
             try:
                 await asyncio.wait_for(process.wait(), 5)
             except TimeoutError:
-                os.killpg(process.pid, signal.SIGKILL)
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    await process.wait()
                 await process.wait()
         if "output_task" in locals():
             await asyncio.gather(output_task, error_task, return_exceptions=True)
     PROCESSES.labels(
         tool=Path(args[0]).name, outcome="success" if process.returncode == 0 else "failure"
     ).inc()
+    if process.returncode and b"No space left on device" in stderr:
+        raise ProcessError("storage_full", "Media storage capacity is exhausted", 507)
     return process.returncode or 0, stdout, stderr
 
 

@@ -12,6 +12,7 @@ from datetime import timedelta
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -84,8 +85,9 @@ async def fail_attempt(job_id: UUID, fence: int, exc: Exception) -> None:
             job.status, job.completed_at = "failed", now()
             project = await session.get(Project, job.project_id)
             if project:
-                session.add(Notification(user_id=project.owner_id, job_id=job.id,
-                    kind="job_failed", message="Background media processing failed"))
+                await session.execute(insert(Notification).values(user_id=project.owner_id, job_id=job.id,
+                    kind="job_failed", message="Background media processing failed").on_conflict_do_nothing(
+                        index_elements=[Notification.job_id, Notification.kind]))
         job.error_code = getattr(exc, "code", "processing_failed")
         job.error_message = getattr(exc, "message", "Background processing failed")[:1000]
         if job.asset_id:

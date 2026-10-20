@@ -5,7 +5,14 @@ import pytest
 
 from app.core.exceptions import DomainError
 from app.modules.editor.compiler import compile_plan
-from app.modules.editor.schemas import AudioClipSpec, ClipSpec, EffectSpec, OutputProfile, TimelinePlan, TransitionSpec
+from app.modules.editor.schemas import (
+    AudioClipSpec,
+    ClipSpec,
+    EffectSpec,
+    OutputProfile,
+    TimelinePlan,
+    TransitionSpec,
+)
 from app.modules.editor.validators import validate_plan
 
 

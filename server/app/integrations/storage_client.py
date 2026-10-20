@@ -125,6 +125,7 @@ class R2Storage(LocalStorage):
             aws_secret_access_key=settings.r2_secret_access_key,
             region_name="auto",
             config=Config(connect_timeout=10, read_timeout=60,
+                          request_checksum_calculation="when_required", response_checksum_validation="when_required",
                           retries={"max_attempts": 3, "mode": "standard"}),
         )
 

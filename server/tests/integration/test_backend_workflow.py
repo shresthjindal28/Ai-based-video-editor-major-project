@@ -55,7 +55,7 @@ async def test_migrations_project_crud_and_cache_invalidation(backend):
     client = backend.client
     backend.identity["user"] = backend.users[0]
     async with backend.factory() as session:
-        assert (await session.execute(text("SELECT version_num FROM alembic_version"))).scalar_one() == "0003_file_deletions"
+        assert (await session.execute(text("SELECT version_num FROM alembic_version"))).scalar_one() == "0004_job_invariants"
     created = await client.post("/api/v1/projects", json={"name": "Before rename"})
     assert created.status_code == 201
     project = created.json()

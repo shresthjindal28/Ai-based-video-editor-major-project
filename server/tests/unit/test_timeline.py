@@ -55,3 +55,10 @@ def test_mlt_xml_is_structured_and_resolves_only_supplied_assets(tmp_path: Path)
     assert "&amp;" in contents
     assert "video_playlist_0_0" in contents
     assert "../" not in contents
+
+
+def test_camera_keyframes_reject_unsorted_and_out_of_range_frames():
+    from app.modules.editor.schemas import Keyframe
+    with pytest.raises(ValidationError):
+        ClipSpec(id=uuid4(),asset_id=uuid4(),source_in_frame=0,duration_frames=24,timeline_start_frame=0,
+                 volume_keyframes=[Keyframe(frame=12,value=1),Keyframe(frame=2,value=0)])

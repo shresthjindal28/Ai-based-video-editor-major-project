@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SAMPLE_RAW_CLIPS, DEMO_PRESET_PROMPTS, TIMELINE_CUTS } from "@/lib/constants/demo-data";
 import { TimelineTracks } from "./timeline-tracks";
 import {
@@ -19,7 +19,11 @@ export function InteractiveEditorPreview() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStage, setProcessingStage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [activeSecond, setActiveSecond] = useState(14);
+  const [activeSecond, setActiveSecond] = useState(0);
+  const [duration, setDuration] = useState(8);
+  const [videoError, setVideoError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const processingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const selectedCut = TIMELINE_CUTS[1];
 
   const stages = [
@@ -31,17 +35,19 @@ export function InteractiveEditorPreview() {
   ];
 
   const handleRunAi = () => {
+    if (videoRef.current) videoRef.current.currentTime = 0;
     setIsProcessing(true);
     setProcessingStage(0);
     setIsPlaying(false);
 
     let stage = 0;
-    const interval = setInterval(() => {
+    if (processingTimer.current) clearInterval(processingTimer.current);
+    processingTimer.current = setInterval(() => {
       stage++;
       if (stage < stages.length) {
         setProcessingStage(stage);
       } else {
-        clearInterval(interval);
+        if (processingTimer.current) clearInterval(processingTimer.current);
         setIsProcessing(false);
         setIsPlaying(true);
         setActiveSecond(0);
@@ -50,14 +56,23 @@ export function InteractiveEditorPreview() {
   };
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlaying) {
-      timer = setInterval(() => {
-        setActiveSecond((prev) => (prev >= 45 ? 0 : prev + 1));
-      }, 500);
+    const video = videoRef.current;
+    if (!video) return;
+    if (isPlaying && !isProcessing) {
+      video.play().catch(() => setIsPlaying(false));
+    } else {
+      video.pause();
     }
-    return () => clearInterval(timer);
-  }, [isPlaying]);
+  }, [isPlaying, isProcessing]);
+
+  useEffect(() => () => {
+    if (processingTimer.current) clearInterval(processingTimer.current);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const whole = Math.floor(seconds);
+    return `${Math.floor(whole / 60).toString().padStart(2, "0")}:${(whole % 60).toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="w-full rounded-[2rem] border border-white/10 bg-[#110e0c] shadow-2xl shadow-amber-950/30 overflow-hidden">
@@ -70,16 +85,17 @@ export function InteractiveEditorPreview() {
             <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
           </div>
           <span className="text-xs font-mono text-stone-400">
-            AutoCut Project: <span className="text-white font-medium">Coastal_Launch_Cut.auto</span>
+            AutoCut Project: <span className="text-white font-medium">Kitchen_Stories.auto</span>
           </span>
           <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono bg-primary/15 text-primary border border-primary/30">
-            4K ProRes 422
+            Cooking reel · Sample
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
+              if (videoRef.current) videoRef.current.currentTime = 0;
               setActiveSecond(0);
               setIsPlaying(false);
             }}
@@ -89,7 +105,7 @@ export function InteractiveEditorPreview() {
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
           <div className="text-xs font-mono text-primary bg-primary/10 border border-primary/25 px-2.5 py-1 rounded-full">
-            {`00:${activeSecond.toString().padStart(2, "0")}:18 / 00:45:00`}
+            {`${formatTime(activeSecond)} / ${formatTime(duration)}`}
           </div>
         </div>
       </div>
@@ -104,7 +120,7 @@ export function InteractiveEditorPreview() {
                 <Film className="w-3.5 h-3.5 text-primary" />
                 Raw Footage Bin (4 Clips)
               </span>
-                  <span className="text-[10px] text-stone-500 font-mono">11.4 GB Ingested</span>
+                  <span className="text-[10px] text-stone-500 font-mono">Sample media</span>
             </div>
 
             <div className="space-y-2">
@@ -138,7 +154,7 @@ export function InteractiveEditorPreview() {
           <div className="pt-2 border-t border-white/10">
             <label className="text-xs font-semibold text-stone-200 uppercase tracking-wider flex items-center gap-1.5 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              Director Vision Prompt
+              Your editing brief
             </label>
             <div className="space-y-2">
               <textarea
@@ -187,6 +203,22 @@ export function InteractiveEditorPreview() {
         <div className="lg:col-span-8 flex flex-col justify-between bg-black">
           {/* Video Player Display */}
           <div className="relative aspect-video w-full bg-gradient-to-b from-[#181410] to-[#0c0a09] flex items-center justify-center overflow-hidden">
+            <video
+              ref={videoRef}
+              src="/videos/cooking-preview.mp4"
+              poster="/videos/cooking-preview.jpg"
+              className={`absolute inset-0 h-full w-full object-cover ${isProcessing ? "invisible" : ""}`}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Cooking reel sample: a chef frying ingredients in a skillet"
+              onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
+              onTimeUpdate={(event) => setActiveSecond(event.currentTarget.currentTime)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onError={() => { setVideoError(true); setIsPlaying(false); }}
+            />
             {isProcessing ? (
               <div className="flex flex-col items-center justify-center p-6 text-center max-w-md animate-in fade-in duration-300">
                 <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/40 flex items-center justify-center mb-4 text-primary animate-pulse">
@@ -205,13 +237,13 @@ export function InteractiveEditorPreview() {
               </div>
             ) : (
               <div className="relative w-full h-full flex items-center justify-center group">
-                {/* Simulated Cinematic Video Frame */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-950/40 via-[#110e0c] to-black" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+                {videoError && <p role="alert" className="absolute inset-x-4 top-16 text-center text-sm text-white">The sample could not load. Refresh to try again.</p>}
 
                 {/* Subtitle Kinetic Overlay */}
                 <div className="absolute bottom-12 inset-x-8 text-center pointer-events-none z-10">
                   <span className="inline-block px-3 py-1 rounded bg-black/80 backdrop-blur-md border border-white/10 text-white font-bold text-sm sm:text-base tracking-wide drop-shadow-md">
-                    &quot;Every great edit starts <span className="text-primary">with a story</span>&quot;
+                    A little heat. <span className="text-primary">A lot of flavor.</span>
                   </span>
                 </div>
 
@@ -222,15 +254,16 @@ export function InteractiveEditorPreview() {
                     Warm film look
                   </span>
                   <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-mono text-stone-300 border border-white/10">
-                    Music lowered under dialogue
+                    Cooking reel · Muted preview
                   </span>
                 </div>
 
                 {/* Play / Pause Center Overlay Button */}
                 <button
-                  onClick={() => setIsPlaying(!isPlaying)}
+                  onClick={() => setIsPlaying((playing) => !playing)}
+                  disabled={videoError}
                   className="relative z-10 w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md flex items-center justify-center text-white transition-transform hover:scale-110 active:scale-95 shadow-xl shadow-black/60 cursor-pointer"
-                  aria-label={isPlaying ? "Pause simulated playback" : "Play simulated playback"}
+                  aria-label={isPlaying ? "Pause cooking video" : "Play cooking video"}
                 >
                   {isPlaying ? (
                     <Pause className="w-7 h-7 text-white fill-white" />
@@ -256,7 +289,7 @@ export function InteractiveEditorPreview() {
 
             <div className="flex items-center gap-1.5 text-[10px] text-stone-400 font-mono">
               <CheckCircle2 className="w-3.5 h-3.5 text-teal-300" />
-              <span>Cutaway supports the dialogue</span>
+              <span>Bring the cooking details closer</span>
             </div>
           </div>
         </div>
@@ -265,7 +298,7 @@ export function InteractiveEditorPreview() {
       {/* Multi-Track Interactive Timeline */}
       <TimelineTracks
         activeSecond={activeSecond}
-        totalSeconds={45}
+        totalSeconds={duration}
       />
     </div>
   );

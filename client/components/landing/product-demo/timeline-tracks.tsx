@@ -15,11 +15,9 @@ export function TimelineTracks({ activeSecond, totalSeconds }: TimelineTracksPro
     <div className="w-full bg-[#100e0c] border-t border-white/10 p-3 sm:p-4 select-none font-mono text-xs">
       {/* Timecode header with scrubber head */}
       <div className="relative h-6 border-b border-white/10 mb-2 flex items-center justify-between text-[10px] text-stone-500">
-        <span>00:00</span>
-        <span>00:10</span>
-        <span>00:20</span>
-        <span>00:30</span>
-        <span>00:45</span>
+        {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
+          <span key={fraction}>00:{Math.floor(totalSeconds * fraction).toString().padStart(2, "0")}</span>
+        ))}
 
         {/* Playhead line */}
         <div
@@ -41,12 +39,12 @@ export function TimelineTracks({ activeSecond, totalSeconds }: TimelineTracksPro
             <div
               className="absolute left-[18%] w-[22%] h-full bg-gradient-to-r from-rose-600/40 to-orange-600/40 border border-rose-400/40 rounded flex items-center px-1 text-[9px] text-rose-100"
             >
-              Drone_Flyover.mp4
+              Skillet_Closeup.mp4
             </div>
             <div
               className="absolute left-[70%] w-[18%] h-full bg-gradient-to-r from-rose-600/40 to-orange-600/40 border border-rose-400/40 rounded flex items-center px-1 text-[9px] text-rose-100"
             >
-              Macro_Detail.mov
+              Ingredients_Detail.mov
             </div>
           </div>
         </div>
@@ -59,16 +57,16 @@ export function TimelineTracks({ activeSecond, totalSeconds }: TimelineTracksPro
           </div>
           <div className="flex-1 relative h-5 rounded overflow-hidden bg-black/40 flex gap-0.5">
             <div className="w-[18%] h-full bg-amber-500/30 border border-amber-500/40 rounded flex items-center px-1 text-[9px] text-amber-100 truncate">
-              Take 01 [Hook]
+              Take 01 [Heat]
             </div>
             <div className="w-[22%] h-full bg-amber-500/20 border border-amber-500/30 rounded flex items-center px-1 text-[9px] text-amber-200 truncate">
-              Take 02 [Punch-in]
+              Take 02 [Sizzle]
             </div>
             <div className="w-[30%] h-full bg-amber-500/30 border border-amber-500/40 rounded flex items-center px-1 text-[9px] text-amber-100 truncate">
-              Take 03 [Explanation]
+              Take 03 [Stir]
             </div>
             <div className="flex-1 h-full bg-amber-500/20 border border-amber-500/30 rounded flex items-center px-1 text-[9px] text-amber-200 truncate">
-              Take 04 [CTA]
+              Take 04 [Finish]
             </div>
           </div>
         </div>
@@ -81,10 +79,10 @@ export function TimelineTracks({ activeSecond, totalSeconds }: TimelineTracksPro
           </div>
           <div className="flex-1 relative h-5 rounded overflow-hidden bg-black/40">
             <div className="absolute left-[3%] w-[35%] h-full bg-amber-500/20 border border-amber-500/30 rounded flex items-center px-1 text-[9px] text-amber-200">
-              Kinetic Hook Subtitle
+              A little heat.
             </div>
             <div className="absolute left-[45%] w-[48%] h-full bg-amber-500/20 border border-amber-500/30 rounded flex items-center px-1 text-[9px] text-amber-200">
-              Word-by-word highlighted
+              A lot of flavor.
             </div>
           </div>
         </div>

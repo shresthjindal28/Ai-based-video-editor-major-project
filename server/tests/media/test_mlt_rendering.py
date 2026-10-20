@@ -57,6 +57,11 @@ async def test_mlt_trim_sequencing_and_source_audio(sources, tmp_path):
     result = tmp_path / "sequence.mp4"
     await render(plan, sources, result, {i:(24,1) for i in ids})
     await verify_render(result, plan)
+    from array import array
+    decoded = subprocess.run([get_settings().ffmpeg_binary,"-v","error","-i",str(result),
+        "-vn","-ac","1","-ar","48000","-f","s16le","-"],capture_output=True,check=True,timeout=30).stdout
+    samples=array("h",decoded)
+    assert sum(abs(value) for value in samples)/len(samples)>500
     first, last = frame(result, 0.2), frame(result, 0.7)
     assert first[0] > 100 and first[2] < 20
     assert last[2] > 100 and last[0] < 20
