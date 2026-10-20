@@ -1,0 +1,14 @@
+from app.modules.analytics.models import *  # noqa: F403
+from app.modules.assets.models import *  # noqa: F403
+from app.modules.audio.models import *  # noqa: F403
+from app.modules.auth.models import *  # noqa: F403
+from app.modules.billing.models import *  # noqa: F403
+from app.modules.editor.models import *  # noqa: F403
+from app.modules.exports.models import *  # noqa: F403
+from app.modules.jobs.models import *  # noqa: F403
+from app.modules.notifications.models import *  # noqa: F403
+from app.modules.projects.models import *  # noqa: F403
+from app.modules.subscriptions.models import *  # noqa: F403
+from app.modules.timelines.models import *  # noqa: F403
+from app.modules.uploads.models import *  # noqa: F403
+from app.modules.users.models import *  # noqa: F403
